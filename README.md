@@ -16,7 +16,7 @@ Ce clustering va nous permettre de mieux caractériser les joueurs, et même pr�
   
   ## <font color='peru'> Variables utilisées </font>
 
-minutes : La durée du match
+- **minutes** : La durée du match
 
 - **l/w_ace** : Nombre des services gagnants par match
 
