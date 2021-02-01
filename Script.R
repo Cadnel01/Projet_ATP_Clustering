@@ -8,7 +8,7 @@ library(dplyr)
 players <- read_csv("Tennis_data/atp_players.csv", col_names = FALSE)
 names(players) <- c("id", "firstname", "lastname", "hand", "birthday", "nat")
 
-df <- read_csv("Tennis_data/atp_matches_2012.csv")
+df <- read_csv("C:/Users/Mehdi/Desktop/M2 URCA/GIT R/Tennis_data/atp_matches_2012.csv")
 
 # Créer un tableau agrégé des gagnants
 df_winner <- df  %>%
@@ -63,7 +63,8 @@ df_clean <- drop_na(df_player)
 # Etude des corrélations
 pairs(df_clean[,2:11])
 
-# Test K-means / Méthode du coude
+
+# Test K-means / M�thode du coude
 inertie.expl <- rep(0,times=6)
 for (k in 2:6){
   km <- kmeans(df_clean[,2:11], k)
@@ -72,10 +73,14 @@ for (k in 2:6){
 
 ggplot()+geom_smooth(mapping = aes(x = 1:6, y = inertie.expl ))
 
-
+# Kmeans avec 4 classeurs
 set.seed(123)
 km <- kmeans(scale(df_clean[,2:11]), 4)
-df_clean$classe = km$cluster
+df_clean$classe_km = km$cluster
+
+# Evaluation des classeurs
+si<-cluster::silhouette(df_clean$classe_km,dist(scale(df_clean[,2:11],center=T,scale=T),"euclidean"))
+plot(si)
 
 # Taille des classeurs
 l=list()
@@ -95,6 +100,7 @@ df_clean %>%
 
 
 # CAH  -----------------------------------------------------------
+library(dendextend)
 df_CAH=df_clean[,c(-1,-12)]
 #base bruite sans les noms et les classe. Passons dÃ©sormais à la distance
 liste <- c("ward.D", "single", "complete", "average" , "mcquitty" , "median" , "centroid", "ward.D2")
@@ -109,13 +115,38 @@ rect.hclust(cah,k=JLutils::best.cutree(cah))
 print(paste0("classe ", JLutils::best.cutree(cah)," pour la methode ",i))
 
 }
+
+
 # Le ward.d2 donnes un cluster de 4
-Cut<-cutree(cah,4)
+D=dist(df_CAH,"euclidean")
+hc <- hclust(D, method = "ward.D")
+Cut<-cutree(hc,4)
 df_CAH$classe<-Cut
 df_CAH$joueur<-df_clean$player
+
+# Afficher le dendogramme
+hc <- as.dendrogram(hc)
+hc <- hc %>%
+  color_branches(k = 4) 
+plot(hc)
+
+# Colorier les classeurs du dendogramme
+hc <- color_labels(hc, k = 4)
+# Changer la taille de police des labels
+hc <- set(hc, "labels_cex", 0.5)
+# Changer les noms des labels 
+labels(hc) <- df_CAH$classe
+plot(hc) 
+
+df_clean$classe_hc <- df_CAH$classe
 
 for (i in 1:ncol(df_CAH)){
 while (is.numeric(df_CAH[,i])){
   print(colnames(df_CAH[,i]))
   i=i+1}
 }
+
+# Comparaison des r�partitions entre les deux algos
+clusteval::cluster_similarity(df_clean$classe_km,df_clean$classe_hc,similarity = "jaccard")
+clusteval::cluster_similarity(df_clean$classe_km,df_clean$classe_hc,similarity = "rand")
+
