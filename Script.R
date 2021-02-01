@@ -10,7 +10,7 @@ names(players) <- c("id", "firstname", "lastname", "hand", "birthday", "nat")
 
 df <- read_csv("Tennis_data/atp_matches_2012.csv")
 
-# Créer un tableau agrégé des gagnants
+# CrÃ©er un tableau agrÃ©gÃ© des gagnants
 df_winner <- df  %>%
   group_by(winner_name, winner_ht) %>%
   summarise(w_ace = mean(w_ace, na.rm = TRUE),
@@ -24,7 +24,7 @@ df_winner <- df  %>%
             w_min = mean(minutes, na.rm = TRUE)
             )
 
-# Créer un tableau agrégé des perdants
+# CrÃ©er un tableau agrÃ©gÃ© des perdants
 df_loser <- df  %>%
   group_by(loser_name, loser_ht) %>%
   summarise(l_ace = mean(l_ace, na.rm = TRUE),
@@ -37,7 +37,7 @@ df_loser <- df  %>%
             l_bpFaced = mean(l_bpFaced, na.rm = TRUE),
             l_min = mean(minutes, na.rm = TRUE))
 
-# Donner le même nom du variable au "winner_name" et "loser_name"  
+# Donner le mÃªme nom du variable au "winner_name" et "loser_name"  
 df_loser <- rename(df_loser, player = loser_name )
 df_winner <- rename(df_winner, player = winner_name)
 
@@ -60,10 +60,10 @@ df_player <- select(df_player, winner_ht, ace,  dblef, stin,
 # Supprimer les valeurs manquantes
 df_clean <- drop_na(df_player)
 
-# Etude des corrélations
+# Etude des corrÃ©lations
 pairs(df_clean[,2:11])
 
-# Test K-means / Méthode du coude
+# Test K-means / MÃ©thode du coude
 inertie.expl <- rep(0,times=6)
 for (k in 2:6){
   km <- kmeans(df_clean[,2:11], k)
@@ -92,3 +92,30 @@ df_clean %>%
 df_clean %>% 
   ggplot()+geom_boxplot(mapping = aes(x = as.character(classe), y = ace,
                                       fill = as.character(classe) ))
+
+
+# CAH  -----------------------------------------------------------
+df_CAH=df_clean[,c(-1,-12)]
+#base bruite sans les noms et les classe. Passons dÃƒÂ©sormais Ã  la distance
+liste <- c("ward.D", "single", "complete", "average" , "mcquitty" , "median" , "centroid", "ward.D2")
+
+for ( i in liste){
+D=dist(df_CAH,"euclidean")
+cah<-hclust(D,method = i)
+inertie <- sort(cah$height, decreasing = TRUE)
+plot(inertie[1:20], type = "s", xlab = "Nombre de classes", ylab = "Inertie",main=paste0("Dendogramme ", i))
+plot(cah, main=paste0("Dendogramme avec la methode ", i))
+rect.hclust(cah,k=JLutils::best.cutree(cah))
+print(paste0("classe ", JLutils::best.cutree(cah)," pour la methode ",i))
+
+}
+# Le ward.d2 donnes un cluster de 4
+Cut<-cutree(cah,4)
+df_CAH$classe<-Cut
+df_CAH$joueur<-df_clean$player
+
+for (i in 1:ncol(df_CAH)){
+while (is.numeric(df_CAH[,i])){
+  print(colnames(df_CAH[,i]))
+  i=i+1}
+}
