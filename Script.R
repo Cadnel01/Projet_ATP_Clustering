@@ -2,6 +2,7 @@
 
 library(tidyverse)
 library(factoextra)
+library(FactoMineR)
 library(NbClust)
 library(dendextend)
 library(fpc)
@@ -17,12 +18,12 @@ df <- read_csv("tennis_atp/atp_matches_2012.csv")
 
 
 ### Préparation de la base ----------------------------------------------------------
+
 # Créer un tableau agrégé des gagnants
 df_winner <- df  %>%
   group_by(winner_name) %>%
   summarise(w_ace = mean(w_ace, na.rm = TRUE),
             w_ht = winner_ht, 
-            w_df = mean(w_df, na.rm = TRUE),
             w_stIn = mean(w_1stIn, na.rm = TRUE),
             w_stWon = mean(w_1stWon, na.rm = TRUE),
             w_svgms = mean(w_SvGms, na.rm = TRUE),
@@ -36,7 +37,6 @@ df_loser <- df  %>%
   group_by(loser_name) %>%
   summarise(l_ace = mean(l_ace, na.rm = TRUE),
             l_ht = loser_ht, 
-            l_df = mean(l_df, na.rm = TRUE),
             l_stIn = mean(l_1stIn, na.rm = TRUE),
             l_stWon = mean(l_1stWon, na.rm = TRUE),
             l_svgms = mean(l_SvGms, na.rm = TRUE),
@@ -55,7 +55,6 @@ df_player <- full_join(df_winner, df_loser, by = "player")
 
 # Combinaison des variables
 df_player <- mutate(df_player, ace = w_ace + l_ace,
-                    dblef = w_df + l_df,
                     height = case_when(w_ht == l_ht ~ w_ht, w_ht != l_ht ~ l_ht),
                     stin = w_stIn  + l_stIn,
                     stWon = w_stWon + l_stWon,
@@ -63,18 +62,21 @@ df_player <- mutate(df_player, ace = w_ace + l_ace,
                     bpSaved = w_bpSaved + l_bpSaved,
                     bpFaced = w_bpFaced + l_bpFaced,
                     min = l_min + w_min) %>%
-            select(ace,  dblef, height, stin, stWon, svgms, bpSaved, bpFaced, min)
+            select(ace, height, stin, stWon, svgms, bpSaved, bpFaced, min)
 
 # Supprimer les valeurs manquantes
 df_clean <- drop_na(df_player)
+df_clean <- as.data.frame(df_clean)
+rownames(df_clean) <- df_clean[,1]
+df_clean <- df_clean[,-1]
 
 # Etude des corrélations
-pairs(df_clean[,2:10])
+pairs(df_clean)
 
 ### k-means ----------------------------------------------------------------------
 
 set.seed(123)
-df_kmeans <- scale(df_clean[,2:10], center=T, scale=T)
+df_kmeans <- as.data.frame(scale(df_clean, center=T, scale=T))
 
 ## Choix du nombre de clusters ##
 
@@ -85,11 +87,11 @@ for (k in 2:11){
   inertie.expl[k-1] <- km$betweenss/km$totss
 }
 
-plot(x=1:10 ,y=inertie.expl,type="b",xlab="Nb. de groupes",ylab="% inertie expliquée")
+plot(x = 1:10 ,y = inertie.expl, type="b", xlab="Nb. de groupes", ylab="% inertie expliquée")
 #A partir de k = 4 classes, un cluster supplémentaire n’augmente pas 
 #significativementla part d’inertie expliquée par la partition. 
 
-sol.kmeans <- kmeansruns(df_kmeans,krange=2:10,criterion="ch")
+sol.kmeans <- kmeansruns(df_kmeans, krange=2:10, criterion="ch")
 plot(1:10,sol.kmeans$crit, type="b", xlab="Nb. de groupes",ylab="Silhouette")
 #Point maximum à 4 clusters
 
@@ -98,15 +100,17 @@ fviz_nbclust(nb) #4 clusters
 
 
 ## Kmeans ##
-
+set.seed(123)
 km <- kmeans(df_kmeans, 4)
 df_clean$classe_km <- km$cluster
 
 # Taille des clusters
-l=list()
+l = list()
+DF <- df_clean
 for (i in 1:4){
-  l = append(l,nrow(filter(df_kmeans, classe_km == i)))
+  l = append(l,nrow(filter(DF, classe_km == i)))
 }
+l
 
 # Comparaison des coefficients de silhouette
 si <- cluster::silhouette(km$cluster,dist(df_kmeans,"euclidean"))
@@ -114,12 +118,12 @@ plot(si)
 factoextra::fviz_silhouette(si) + ggplot2::ylim(-1,1)
 
 ## Visualisation ##
-fviz_cluster(km, geom="point", data = df_kmeans) + ggtitle("k=4")
+fviz_cluster(km, geom="point", data = df_kmeans) + ggtitle("k=3")
 
 
-### CAH  -------------------------------------------------------------------------
+### CAH  --------------------------------------------------------------------------------------------
 
-df_CAH <- scale(df_clean[,2:10], center=T, scale=T)
+df_CAH <- as.data.frame(scale(df_clean, center=T, scale=T))
 
 ## Choix du nombre de clusters ##
 
@@ -135,7 +139,7 @@ for (i in liste){
   rect.hclust(cah, k = JLutils::best.cutree(cah))
   print(paste0("Cluster ", JLutils::best.cutree(cah)," pour la methode ",i))
 } 
-#3 clusters
+# propose 3 ou 4 clusters en fonction de la méthode
 
 # Matrice des distances euclidiennes entre individus
 D_cah = dist(df_CAH,"euclidean")
@@ -151,25 +155,18 @@ si_cah_3 <- cluster::silhouette(clu_3, D_cah)
 plot(si_cah_3)
 si_cah_4 <- cluster::silhouette(clu_4, D_cah)
 plot(si_cah_4)
-# Choix de 4 clusters
 
+# Choix de 4 clusters
 df_CAH$classe <- clu_4
-df_CAH$joueur <- df_clean$player
+df_clean$classe_hc <- df_CAH$classe
 
 # Afficher le dendogramme
+plot(CAH)
 rect.hclust(CAH, k = 4) 
 CAH <- as.dendrogram(CAH)
 CAH <- CAH %>%
   color_branches(k = 4) 
 plot(CAH)
-
-df_clean$classe_hc <- df_CAH$classe
-
-for (i in 1:ncol(df_CAH)){
-while (is.numeric(df_CAH[,i])){
-  print(colnames(df_CAH[,i]))
-  i=i+1}
-}
 
 # Coefficients de silhouette
 si_cah <- cluster::silhouette(df_CAH$classe, D_cah)
@@ -177,13 +174,19 @@ plot(si_cah)
 factoextra::fviz_silhouette(si_cah) + ggplot2::ylim(-1,1)
 
 ## Visualisation
-factoextra::fviz_cluster(list(data=df_CAH, cluster=clu_4), data = df_CAH)
+factoextra::fviz_cluster(list(data=df_CAH, cluster=clu_3),geom="point", data = df_CAH)
+factoextra::fviz_cluster(list(data=df_CAH, cluster=clu_4),geom="point", data = df_CAH)
 
 
 ### Comparaison des repartitions entre les deux algos ----------------------------------------
 
+## Similarité des partitions
+
 clusteval::cluster_similarity(df_clean$classe_km, df_clean$classe_hc, similarity = "jaccard")
 clusteval::cluster_similarity(df_clean$classe_km, df_clean$classe_hc, similarity = "rand")
+#les deux partionnement sont très similaires
+
+## Inerties
 
 inertie_cor<-function(df,p=NULL){
   if (is.null(p)){ p <- rep(1,nrow(df))}
@@ -209,44 +212,82 @@ inertie_intra_cor <- function(df,lab){
   return(sum(res))
 }
 
+inertie_intra_cor(df_CAH,clu_3)
+inertie_inter_cor(df_CAH,clu_3)
+
 inertie_intra_cor(df_CAH,clu_4)
 inertie_inter_cor(df_CAH,clu_4)
 
 km$tot.withinss
 km$betweenss
 
-#meilleurs résulats avec kmeans (plus petit inertie intra et plus grande inertie inter)
+#plus petite inertie intra avec  (petite diff)
+#plus grande inertie inter avec CAH (diff plus importante)
 
 
-### Analyse de chaque clusters -------------------------------------
+### Analyse de chaque clusters ----------------------------------------------------------------
 
 ### Analyse globale ###
 
 df_kmeans %>% 
-  as.data.frame(df_kmeans) %>%
   ggplot()+geom_boxplot(mapping = aes(x = as.character(km$cluster), y = height,
                                       fill = as.character(km$cluster) ))
 
 df_kmeans %>% 
-  as.data.frame(df_kmeans) %>%
   ggplot()+geom_boxplot(mapping = aes(x = as.character(km$cluster), y = ace,
                                       fill = as.character(km$cluster) ))
 
-### Séparation en 4 bases ###
+
+### Séparation des bases ###
 
 df_clean %>% filter(classe_km == 1) -> Base1
-Base1 <- Base1[,-11]
+Base1 <- Base1[,-c(9,10)]
+
 df_clean %>% filter(classe_km == 2) -> Base2
-Base2 <- Base2[,-11]
+Base2 <- Base2[,-c(9,10)]
+
 df_clean %>% filter(classe_km == 3) -> Base3
-Base3 <- Base3[,-11]
+Base3 <- Base3[,-c(9,10)]
+
 df_clean %>% filter(classe_km == 4) -> Base4
-Base4 <- Base4[,-11]
+Base4 <- Base4[,-c(9,10)]
 
-### Cluster 1
 
-### Cluster 2
+### Cluster 1 ###
 
-### Cluster 3
+str(Base1)
+summary(Base1)
+colMeans(Base1) #connaitre les moyennes pour interpréter l'ACP
+diag(cov(Base1)) #dispersion des ecarts types = var influente => ace, height, stin, stwon, min
 
-### Cluster 4
+#Etude des correlations
+cor(Base1) #pas d'effet taille
+plot(Base1)
+
+#Realisation de l'ACP
+acp <- PCA(Base1, scale.unit = T, graph = TRUE, ncp = 2, axes=c(1,2))
+
+# valeurs propres et inertie
+acp[1]
+fviz_eig(acp)
+
+# coord - qualité - contrib des variables
+acp[2]$var$coord
+acp[2]$var$cos2
+acp[2]$var$contrib
+
+# coord - qualité - contrib des individus
+acp[3]$ind$coord
+acp[3]$ind$cos2
+acp[3]$ind$contrib
+
+### Cluster 2 ###
+
+
+### Cluster 3 ###
+
+
+### Cluster 4 ###
+
+
+
