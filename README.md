@@ -26,8 +26,6 @@ Ce clustering va nous permettre de mieux caractériser les joueurs, et même pr�
 
 - **l/w_1stIn** : Nombre de services réussis du premier coup
 
-- **l/w_1stWon** : Nombre de fois où le joueur a gagné le premier point dès son premier service  
-
 - **l/w_2ndWon** : Nombre de fois où le joueur a gagné le premier point dès le deuxième service
 
 - **l/w_SvGms** : Nombre de parties où le joueur a servi
