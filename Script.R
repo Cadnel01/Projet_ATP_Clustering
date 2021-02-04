@@ -240,16 +240,16 @@ df_kmeans %>%
 
 ### SÃ©paration des bases ###
 
-df_clean %>% filter(classe_km == 1) -> Base1
+df_CAH %>% filter(classe_hc == 1) -> Base1
 Base1 <- Base1[,-c(9,10)]
 
-df_clean %>% filter(classe_km == 2) -> Base2
+df_CAH %>% filter(classe_hc == 2) -> Base2
 Base2 <- Base2[,-c(9,10)]
 
-df_clean %>% filter(classe_km == 3) -> Base3
+df_CAH %>% filter(classe_hc == 3) -> Base3
 Base3 <- Base3[,-c(9,10)]
 
-df_clean %>% filter(classe_km == 4) -> Base4
+df_CAH %>% filter(classe_hc == 4) -> Base4
 Base4 <- Base4[,-c(9,10)]
 
 
@@ -284,9 +284,9 @@ acp[3]$ind$contrib
 ### Cluster 2 ###
 
 
-### Cluster 3 #############################################################"
+### Cluster 3 ###
 
-# Récupération des joueurs de ce classeurs
+# Recuperation des joueurs de ce classeurs
 cluster3 <- filter(df_clean, classe_hc == 3)
 
 # Analyse de la taille
@@ -302,9 +302,9 @@ min(cluster3$height)
 # Taille maximale du classeur 3
 max(cluster3$height)
 
-# Résultat: les joueurs dans ce classeur 3 ont des très grandes tailles qui
-# dépassent 1m92 par rapport aux joueurs des autres classeurs qui ont une
-# taille moyenne qui ne dépasse pas 1m85
+# Resultat: les joueurs dans ce classeur 3 ont des tr?s grandes tailles qui
+# d?passent 1m92 par rapport aux joueurs des autres classeurs qui ont une
+# taille moyenne qui ne d?passe pas 1m85
 
 # Nombre de services gagnants par match
 
@@ -312,11 +312,11 @@ df_clean %>%
   ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = ace,
                                       fill = as.character(df_clean$classe_hc) ))
 
-# Résultat: Les joueurs dans ce classeur 3 ont tendances à jouer des
-# bons services. Le nombre moyen des services gagnés par match pour les
-# joueurs de ce classeur est élevé par rapport aux autres 
+# Resultat: Les joueurs dans ce classeur 3 ont tendances ? jouer des
+# bons services. Le nombre moyen des services gagn?s par match pour les
+# joueurs de ce classeur est ?lev? par rapport aux autres 
 # 18 services gagnants par match pour ce classeur tandis que cette moyenne
-# ne dépasse pas 13 services chez les autres
+# ne d?passe pas 13 services chez les autres
 
 a <- list()
 for (i in 1:4){
@@ -325,7 +325,7 @@ for (i in 1:4){
 a
 
 
-# Nombre de services réussis du premier coup
+# Nombre de services reussis du premier coup
 df_clean %>% 
   ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = stin,
                                       fill = as.character(df_clean$classe_hc) ))
@@ -334,10 +334,10 @@ for (i in 1:4){
   b <- append(b, mean(filter(df_clean, classe_hc==i)$stin))
 }
 b
-# Résultat: Nombre de service réussis du premier coup au dessus de la moyenne
-# et prend la deuxième classe parmis les classeurs
+# Resultat: Nombre de service reussis du premier coup au dessus de la moyenne
+# et prend la deuxieme classe parmis les classeurs
 
-# Nombre de fois où le joueur a gagné le premier point dès le premier service
+# Nombre de fois ou le joueur a gagne le premier point d?s le premier service
 df_clean %>% 
   ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = stWon,
                                       fill = as.character(df_clean$classe_hc) ))
@@ -348,12 +348,11 @@ for (i in 1:4){
 }
 c
 
-# Résultat: Nombre de fois où le joueur a gagné le premier point dès le
+# Resultat: Nombre de fois o? le joueur a gagne le premier point des le
 # premier service est au-dessus de la moyenne (73 par match) 
 
 
-##############################################################
-# Résultats : 
+### Resultats : 
 # Les joueurs de ce classeur ont une grande taille, ce qui leurs donnent 
 # un grand avantage dans leurs services
 
