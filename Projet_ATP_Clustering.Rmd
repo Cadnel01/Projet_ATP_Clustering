@@ -1,0 +1,298 @@
+---
+documentclass: "compterendu"
+lang: true
+babel-lang: "french"
+geometry:
+  - left=1.5cm
+  - right=1.5cm
+  - top=1.5cm
+  - bottom=2cm
+title: "Clustering sur les joueurs ATP de l'année 2012."
+author: 
+  - EHRE
+  - ABBASSI
+  - BOUR
+  - SANTOU
+  - GNANASEELAN-BENEDICT
+  - HOUNKPATIN
+email:
+  - Alicia
+  - Mehdi
+  - Léon
+  - Emmanuel
+  - Jathurshan
+  - Cadnel
+date: "`r format(Sys.time(), '%d %B %Y')`"
+abstract: "Réalisation d'un clustering sur les joueurs ATP de l'année 2012."
+anac: "2020-2021"
+diplome: "Master 2 - Statistiques pour l'Evaluation et la Prévision"
+module: "SEP0922"
+enseig: "Philippe Regnault"
+evaluation: "Clustering"
+output: 
+  bookdown::pdf_book:
+    template: template.tex
+    fig_caption: yes
+    keep_tex: yes
+    toc: yes
+bibliography: biblio_cr-urca.bib
+biblio-style: plain
+link-citations: yes
+---
+
+```{r, include = FALSE}
+
+library(tidyverse)
+library(factoextra)
+library(FactoMineR)
+library(NbClust)
+library(dendextend)
+library(fpc)
+library(devtools)
+library(kableExtra)
+#install_github("larmarange/JLutils")
+
+```
+
+```{r, include = FALSE}
+
+#Ce bloc configure quelques options d'affichage pour les blocs R
+library('knitr')
+opts_chunk$set(comment = '', echo = FALSE,  tidy = TRUE, 
+               fig.pos = 'ht!', fig.align='center', fig.width= 4.5, fig.height = 3.2)
+
+```
+
+```{r, include = FALSE}
+
+players <- read_csv("tennis_atp/atp_players.csv", col_names = FALSE)
+names(players) <- c("id", "firstname", "lastname", "hand", "birthday", "nat")
+
+df <- read_csv("tennis_atp/atp_matches_2012.csv")
+
+```
+
+```{r, include = FALSE}
+
+# Créer un tableau agrégé des gagnants
+df_winner <- df  %>%
+  group_by(winner_name) %>%
+  summarise(w_ace = mean(w_ace, na.rm = TRUE),
+            w_ht = winner_ht, 
+            w_stIn = mean(w_1stIn, na.rm = TRUE),
+            w_stWon = mean(w_1stWon, na.rm = TRUE),
+            w_svgms = mean(w_SvGms, na.rm = TRUE),
+            w_bpSaved = mean(w_bpSaved, na.rm = TRUE),
+            w_bpFaced = mean(w_bpFaced, na.rm = TRUE),
+            w_min = mean(minutes, na.rm = TRUE))
+df_winner <- distinct(df_winner,.keep_all = TRUE)
+
+# Créer un tableau agrégé des perdants
+df_loser <- df  %>%
+  group_by(loser_name) %>%
+  summarise(l_ace = mean(l_ace, na.rm = TRUE),
+            l_ht = loser_ht, 
+            l_stIn = mean(l_1stIn, na.rm = TRUE),
+            l_stWon = mean(l_1stWon, na.rm = TRUE),
+            l_svgms = mean(l_SvGms, na.rm = TRUE),
+            l_bpSaved = mean(l_bpSaved, na.rm = TRUE),
+            l_bpFaced = mean(l_bpFaced, na.rm = TRUE),
+            l_min = mean(minutes, na.rm = TRUE))
+df_loser <- distinct(df_loser,.keep_all = TRUE)
+
+
+# Donner le même nom du variable au "winner_name" et "loser_name"  
+df_loser <- rename(df_loser, player = loser_name )
+df_winner <- rename(df_winner, player = winner_name)
+
+# Jointure des tables
+df_player <- full_join(df_winner, df_loser, by = "player")
+
+# Combinaison des variables
+df_player <- mutate(df_player, ace = w_ace + l_ace,
+                    height = case_when(w_ht == l_ht ~ w_ht, w_ht != l_ht ~ l_ht),
+                    stin = w_stIn  + l_stIn,
+                    stWon = w_stWon + l_stWon,
+                    svgms = w_svgms + l_svgms,
+                    bpSaved = w_bpSaved + l_bpSaved,
+                    bpFaced = w_bpFaced + l_bpFaced,
+                    min = l_min + w_min) %>%
+            select(ace, height, stin, stWon, svgms, bpSaved, bpFaced, min)
+
+# Supprimer les valeurs manquantes
+df_clean <- drop_na(df_player)
+df_clean <- as.data.frame(df_clean)
+rownames(df_clean) <- df_clean[,1]
+df_clean <- df_clean[,-1]
+
+```
+
+
+# Contextualisation
+
+Au tennis il existe différents styles de jeu : les défenseurs, les attaquants de fond de court, les contreurs, les joueurs complets et les attaquants de type service volée. Il ne faut pas oublier que chaque joueur est différent pour un même style de jeu. En effet, la tactique pourra être différente en fonction de l'adversaire et en fonction de l'état physique et psychologique du joueur.
+
+Notre objectif est de déterminer différents profils de joueurs selon leur type de jeu en se basant sur l'année 2012 des résultats des matchs ATP.
+
+
+## Choix des variables
+
+Nos bases de données correspondent aux résultats des matchs de tennis des circuits professionnels ATP téléchargeables depuis les dépôts GitHub de Jeff Sackmann. Nous avons choisi les variables suivantes pour expliquer les différents profils de joueurs : 
+
+* minutes : La durée du match
+* l/w_ace : Nombre des services gagnants par match
+* l/w_df : Nombre de services gagnés par doubles fautes de l'adversaire (par match)
+* l/w_svpt : Nombre de service servi (par match)
+* l/w_1stIn : Nombre de services réussis du premier coup
+* l/w_2ndWon : Nombre de fois où le joueur a gagné le premier point dès le deuxième service
+* l/w_SvGms : Nombre de parties où le joueur a serv
+* l/w_bpSaved : Nombre de points de break sauvé
+* l/w_bpFaced : Nombre de points de break rencontrés
+* loser/winner_ht : La taille du joueur
+
+# Clustering
+
+Nous souhaitons faire un clustering pour séparer les joueurs ATP de l'année 2012 en différents groupes de joueurs caractérisés principalement par le style de jeu des joueurs.
+
+## Méthode
+
+Pour réaliser ce clustering nous avons comparé les résultats des méthodes Kmeans et de classification ascendante hiérarchique (CAH). Dans un premier temps, il faut trouver le nombre de cluster optimal. 
+
+Pour la méthode des kmeans nous avons utilisé la fonction nbclust du package NbClust.
+
+```{r, include = FALSE}
+
+set.seed(123)
+df_kmeans <- as.data.frame(scale(df_clean, center=T, scale=T))
+nb <- NbClust(df_kmeans, distance = "euclidean", min.nc = 2, max.nc = 10, method = "kmeans")
+#fviz_nbclust(nb) 
+#Trouver comment prendre que le dernier graph
+
+```
+
+L'ensemble des critères pour la CAH propose un nombre optimal de clusters de 3. Nous allons tout de même comparer la CAH à 3 clusters avec la CAH à 4 clusters.
+
+### Comparaison des coefficients de silhouette
+
+```{r, echo = FALSE, eval = TRUE}
+
+set.seed(123)
+km <- kmeans(df_kmeans, 4)
+df_clean$classe_km <- km$cluster
+# Coefficients de silhouette
+si <- cluster::silhouette(km$cluster,dist(df_kmeans,"euclidean"))
+plot(si)
+#factoextra::fviz_silhouette(si) + ggplot2::ylim(-1,1) 
+#trouver comment prendre que le graph et pas les affichages console
+
+```
+
+```{r, echo = FALSE, eval = TRUE, message = FALSE}
+
+df_CAH <- as.data.frame(scale(df_clean, center=T, scale=T))
+D_cah <- dist(df_CAH,"euclidean")
+CAH <- hclust(D_cah, method = "ward.D2")
+
+# Comparaison 3 - 4 clusters avec CAH
+clu_3 <- cutree(CAH,3)
+clu_4 <- cutree(CAH,4)
+si_cah_3 <- cluster::silhouette(clu_3, D_cah)
+si_cah_4 <- cluster::silhouette(clu_4, D_cah)
+df_CAH$classe <- clu_4
+df_clean$classe_hc <- df_CAH$classe
+plot(si_cah_3)
+plot(si_cah_4)
+# s3 <- factoextra::fviz_silhouette(si_cah_3) + ggplot2::ylim(-1,1)
+# s4 <- factoextra::fviz_silhouette(si_cah_4) + ggplot2::ylim(-1,1)
+# gridExtra::grid.arrange(s3,s4, ncol = 2, nrow = 1)
+#trouver comment prendre que le graph et pas les affichages console
+
+
+```
+| CAH à 3 clusters | | |
+|:-: |--- |--- |
+| Cluster | Nombre d'individus | Coefficient de silhouette moyen |
+|	1	| 24 | 0.49	|
+|	2	| 14 | 0.31	|
+|	3	| 149 | 0.44 |
+
+
+| CAH à 3 clusters | | |
+|:-: | --- |--- |
+| Cluster | Nombre d'individus | Coefficient de silhouette moyen |
+|	1	| 24 | 0.46	|
+|	2	| 14 | 0.28	|
+|	3	| 47 | 0.29	|
+|	4	| 102 |	0.38 |
+
+
+
+Les coefficients de silhouette sont meilleurs avec la méthode de la CAH plutôt qu'avec les Kmeans. De plus, à l'aide de la fonction cluster_similarity du package clusteval, les indice de Jaccard (égal à 1 ici) et de Rand (1 également) nous montre qu'un kmeans à 4 clusters nous donne la même partition qu'une CAH à 4 clusters. Le choix se fait donc entre une CAH à 3 ou 4 clusters. Pour faire ce choix il faut comparer les inerties des classifications. 
+
+### Comparaison des inerties
+
+```{r, include = FALSE}
+
+#Les fonctions d'inertie
+
+inertie_cor<-function(df,p=NULL){
+  if (is.null(p)){ p <- rep(1,nrow(df))}
+  g <- ( p %*% as.matrix(df) ) / sum(p)
+  iner <- 0
+  for (i in seq(nrow(df))){ iner <- iner + sum((df[i,] - g)^2) * p[i]   }
+  return(iner)
+}
+
+inertie_inter_cor<-function(df,lab){
+  M<-matrix(rep(0,ncol(df)*length(unique(lab))),ncol = ncol(df))
+  for (k in unique(lab)){
+    M[k,]<-unname(colMeans(df[which(lab==k),]))
+  }
+  return(inertie_cor(data.frame(M),unname(table(lab))))
+}
+
+inertie_intra_cor <- function(df,lab){
+  res <- rep(0,length(unique(lab)))
+  for (i in unique(lab)) {
+    res[i] <- inertie_cor(df[which(lab==i),])
+  }
+  return(sum(res))
+}
+
+```
+
+|   |   CAH à 3 clusters |   CAH à 4 clusters |
+|---    |:-:    |:-:   |
+| Inertie intraclasse | 976,72 | 704,78 |
+| Inertie interclasse | 900,72 | 1172,67 |
+
+La CAH à 4 clusters minimise le mieux l'inertie intraclasse et maximise le mieux l'inertie interclasse, en comparaison avec la CAH à 3 clusters et les Kmeans. Ainsi la méthode sélectionnée est la méthode des CAH à l'aide du critère de ward avec 4 clusters. 
+
+```{r, echo = FALSE, eval = TRUE}
+
+factoextra::fviz_cluster(list(data=df_CAH, cluster=clu_4),geom="point", data = df_CAH)
+
+```
+
+## Les clusters - Interprétation
+
+Nous allons donc maintenant étudier nos 4 clusters obtenus à l'aide de la méthode des kmeans.
+
+### Cluster 1
+
+### Cluster 2
+
+### Cluster 3
+
+### Cluster 4
+
+
+# Conclusion
+
+
+# (APPENDIX) Annexes {-}
+
+# Annexes
+
+
+# Bibliographie
