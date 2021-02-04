@@ -358,6 +358,56 @@ c
 
 
 ### Cluster 4 ###
+head(Base4)
+print(paste0("le 4ème cluster est celui est un cluster qui contient ",round(nrow(Base4)/nrow(df_clean)*100,2),"% observation Les joueurs les plus connus,dans ce cluster sont nottament, Heywitt, Monfils"))
 
+for ( i in 1:ncol(Base4)){
+  df_clean[,-2]
+  col<-colnames(Base4)
+  if (mean(Base4[,i])>mean(df_clean[,i])) {
+    print(paste0("Moyenne nettement superieur à la base de donnée pour la variable ",col[i]))
+  }
+  else{
+    print(paste0("Moyenne nettement inférieur à la base de donnée pour la variable ",col[i]))
+  }
+}
+#en Général ces joueurs ont des statisitisques supperieur à la moyenne pour la variable Stin,svgms,Bpsaved,Bpfaced,min       
+pairs(Base4)
+
+ggplot(data=Base4,mapping = aes(x=bpFaced,y=bpSaved))+
+  geom_point()+geom_smooth(method="lm")+
+  ggtitle("Balle de Break Sauvé")
+
+ggplot(data=Base4,mapping = aes(x=stWon,y=stin))+
+  geom_point()+geom_smooth(method="lm")+
+  ggtitle("Nombre de service gagnant")
+#plus le joueurs fais un service, plus il gagne de jeu. Cela signifie alors que les joueurs de ce cluster ont une puisse de Frappe, enormes
+#afin de gagner facilement sur les services.
+
+
+for (i in col){
+  boxplot(Base4[,i],main=paste0("Bôite a moustache de la variable ",i))
+  print(paste0("la variance est de ",i ,' ',sqrt(sd(Base4[,i]))))
+}
+# les joueurs sont assez petit comparer à la base de de df_clean avec une moyenne de 1m85
+#les écart à la moyenne sont assez faible, sauf pour min
+
+
+#en Genéral ces joueurs sont d'autant plus présent lorsqu'il faut sauver des balles de break,
+a<-c("Jan Hernych","Denis Gremelmayr")
+a<-which(rownames(Base4)==a)
+a<-FactoMineR::PCA(Base4,ncp=4,ind.sup = c(22,44))
+explor::explor(a)
+#Ces joueurs se caractérise vraiment sur le nombre de break sauvé, et sur le nombre de jeu gagné après le service.Par ailleurs l'analyse a monter que les jouait beaucou plus de temps.
+#par ailleurs ces joueurs se distingue aussi au niveau du service, il existe une corélation entre le nombre de serice in et le nombre de service gagné.( Présence de Nadal).
+# l'analyse a montre que les joueurs suivant Hernych, Denis Gremelmayr sont pas dans le bon groupe. 
+
+res <- explor::prepare_results(a)
+explor::PCA_ind_plot(res, xax = 1, yax = 2, ind_sup = TRUE, lab_var = NULL,
+                     ind_lab_min_contrib = 0, col_var = NULL, labels_size = 9, point_opacity = 0.5,
+                     opacity_var = NULL, point_size = 64, ellipses = FALSE, transitions = TRUE,
+                     labels_positions = NULL, xlim = c(-5.57, 5.09), ylim = c(-4.98, 5.68)
+                     #le cluster 4 peut donc distinguer des joueurs avec un style de jeu assez deffensive( tels monfils) mais aussi avec des frappe de l'espace( Nadal GANG)
+                     
 
 
