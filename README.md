@@ -34,6 +34,6 @@ Ce clustering va nous permettre de mieux caractériser les joueurs, et même pr�
 
 - **l/w_bpFaced** : winner's number of break points faced (à changer après)
 
-- **winner/loser_ht**: Taille du joueur
+- **loser/winner_ht**: Taille du joueur
 
     
