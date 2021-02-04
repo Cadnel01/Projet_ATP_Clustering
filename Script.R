@@ -14,7 +14,7 @@ library(devtools)
 players <- read_csv("tennis_atp/atp_players.csv", col_names = FALSE)
 names(players) <- c("id", "firstname", "lastname", "hand", "birthday", "nat")
 
-df <- read_csv("tennis_atp/atp_matches_2012.csv")
+df <- read_csv("Tennis_data/atp_matches_2012.csv")
 
 
 ### PrÃ©paration de la base ----------------------------------------------------------
@@ -284,7 +284,78 @@ acp[3]$ind$contrib
 ### Cluster 2 ###
 
 
-### Cluster 3 ###
+### Cluster 3 #############################################################"
+
+# Récupération des joueurs de ce classeurs
+cluster3 <- filter(df_clean, classe_hc == 3)
+
+# Analyse de la taille
+df_clean %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = height,                                      fill = as.character(df_clean$classe_hc) ))
+
+# Taille moyenne du classeur 3
+mean(cluster3$height)
+
+# Taille minimale du classeur 3
+min(cluster3$height)
+
+# Taille maximale du classeur 3
+max(cluster3$height)
+
+# Résultat: les joueurs dans ce classeur 3 ont des très grandes tailles qui
+# dépassent 1m92 par rapport aux joueurs des autres classeurs qui ont une
+# taille moyenne qui ne dépasse pas 1m85
+
+# Nombre de services gagnants par match
+
+df_clean %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = ace,
+                                      fill = as.character(df_clean$classe_hc) ))
+
+# Résultat: Les joueurs dans ce classeur 3 ont tendances à jouer des
+# bons services. Le nombre moyen des services gagnés par match pour les
+# joueurs de ce classeur est élevé par rapport aux autres 
+# 18 services gagnants par match pour ce classeur tandis que cette moyenne
+# ne dépasse pas 13 services chez les autres
+
+a <- list()
+for (i in 1:4){
+  a <- append(a, mean(filter(df_clean, classe_hc==i)$ace))
+}
+a
+
+
+# Nombre de services réussis du premier coup
+df_clean %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = stin,
+                                      fill = as.character(df_clean$classe_hc) ))
+b <- list()
+for (i in 1:4){
+  b <- append(b, mean(filter(df_clean, classe_hc==i)$stin))
+}
+b
+# Résultat: Nombre de service réussis du premier coup au dessus de la moyenne
+# et prend la deuxième classe parmis les classeurs
+
+# Nombre de fois où le joueur a gagné le premier point dès le premier service
+df_clean %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = stWon,
+                                      fill = as.character(df_clean$classe_hc) ))
+
+c <- list()
+for (i in 1:4){
+  c <- append(c, mean(filter(df_clean, classe_hc==i)$stWon))
+}
+c
+
+# Résultat: Nombre de fois où le joueur a gagné le premier point dès le
+# premier service est au-dessus de la moyenne (73 par match) 
+
+
+##############################################################
+# Résultats : 
+# Les joueurs de ce classeur ont une grande taille, ce qui leurs donnent 
+# un grand avantage dans leurs services
 
 
 ### Cluster 4 ###
