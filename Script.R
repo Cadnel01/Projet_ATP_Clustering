@@ -32,6 +32,10 @@ df_winner <- df  %>%
             w_min = mean(minutes, na.rm = TRUE))
 df_winner <- distinct(df_winner,.keep_all = TRUE)
 
+df %>%
+  select(winner_name, winner_age) -> df_w_age
+df_w_age <- distinct(df_w_age,.keep_all = TRUE)
+
 # Créer un tableau agrégé des perdants
 df_loser <- df  %>%
   group_by(loser_name) %>%
@@ -45,13 +49,22 @@ df_loser <- df  %>%
             l_min = mean(minutes, na.rm = TRUE))
 df_loser <- distinct(df_loser,.keep_all = TRUE)
 
+df %>%
+  select(loser_name, loser_age) -> df_l_age
+df_l_age <- distinct(df_l_age,.keep_all = TRUE)
+
 
 # Donner le même nom du variable au "winner_name" et "loser_name"  
 df_loser <- rename(df_loser, player = loser_name )
 df_winner <- rename(df_winner, player = winner_name)
 
+df_w_age <- rename(df_w_age, player = winner_name )
+df_l_age <- rename(df_l_age, player = loser_name )
+
 # Jointure des tables
 df_player <- full_join(df_winner, df_loser, by = "player")
+
+df_age <- full_join(df_w_age, df_l_age, by = "player")
 
 # Combinaison des variables
 df_player <- mutate(df_player, ace = w_ace + l_ace,
@@ -229,13 +242,37 @@ km$betweenss
 
 #### Analyse globale ####
 
-df_kmeans %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(km$cluster), y = height,
-                                      fill = as.character(km$cluster) ))
+df_CAH %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = height,
+                                      fill = as.character(df_CAH$classe) ))
 
-df_kmeans %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(km$cluster), y = ace,
-                                      fill = as.character(km$cluster) ))
+df_CAH %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = ace,
+                                      fill = as.character(df_CAH$classe) ))
+
+df_CAH %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = stin,
+                                      fill = as.character(df_CAH$classe) ))
+
+df_CAH %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = stWon,
+                                      fill = as.character(df_CAH$classe) ))
+
+df_CAH %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = svgms,
+                                      fill = as.character(df_CAH$classe) ))
+
+df_CAH %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = bpFaced,
+                                      fill = as.character(df_CAH$classe) ))
+
+df_CAH %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = bpSaved,
+                                      fill = as.character(df_CAH$classe) ))
+
+df_CAH %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = min,
+                                      fill = as.character(df_CAH$classe) ))
 
 
 ### Séparation des bases ###
@@ -359,6 +396,16 @@ acp[3]$ind$contrib
 #On a des joueurs qui assurent ds services gagnants, sauvent et gagnent les balles de matchs
 #tel que Alessandro Gianessi 
 
+Base2 %>%
+  mutate(Base2, rap_breaks_sauves = bpSaved/bpFaced) -> Base2
+
+Base2 %>%
+  mutate(Base2, rap_services = stWon/stin) -> Base2
+
+mean(Base2$rap_breaks_sauves)
+mean(Base2$svgms)
+mean(Base2$rap_services)
+
 
 #### Cluster 3 ####
 
@@ -431,6 +478,15 @@ c
 ### Resultats : 
 # Les joueurs de ce classeur ont une grande taille, ce qui leurs donnent 
 # un grand avantage dans leurs services
+
+Base3 %>%
+  mutate(Base3, rap_services = stWon/stin) -> Base3
+
+Base3 %>%
+  mutate(Base3, rap_aces = ace/stWon) -> Base3
+
+mean(Base3$rap_services)
+mean(Base3$rap_aces)
 
 
 #### Cluster 4 ####
