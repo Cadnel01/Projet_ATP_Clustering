@@ -101,7 +101,7 @@ df_loser <- df  %>%
 df_loser <- distinct(df_loser,.keep_all = TRUE)
 
 
-# Donner le même nom du variable au "winner_name" et "loser_name"  
+# Donner le même nom de variable au "winner_name" et "loser_name"  
 df_loser <- rename(df_loser, player = loser_name )
 df_winner <- rename(df_winner, player = winner_name)
 
@@ -130,7 +130,7 @@ df_clean <- df_clean[,-1]
 
 # Contextualisation
 
-Au tennis il existe différents styles de jeu : les défenseurs, les attaquants de fond de court, les contreurs, les joueurs complets et les attaquants de type service volée. Il ne faut pas oublier que chaque joueur est différent pour un même style de jeu. En effet, la tactique pourra être différente en fonction de l'adversaire et en fonction de l'état physique et psychologique du joueur.
+Au tennis, il existe différents styles de jeu : les défenseurs, les attaquants de fond de court, les contreurs, les joueurs complets et les attaquants de type service volée. Il ne faut pas oublier que chaque joueur est différent pour un même style de jeu. En effet, la tactique pourra être différente en fonction de l'adversaire, de l'état physique et psychologique du joueur.
 
 Notre objectif est de déterminer différents profils de joueurs selon leur type de jeu en se basant sur l'année 2012 des résultats des matchs ATP.
 
