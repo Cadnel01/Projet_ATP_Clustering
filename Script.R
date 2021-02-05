@@ -14,7 +14,7 @@ library(devtools)
 players <- read_csv("tennis_atp/atp_players.csv", col_names = FALSE)
 names(players) <- c("id", "firstname", "lastname", "hand", "birthday", "nat")
 
-df <- read_csv("Tennis_data/atp_matches_2012.csv")
+df <- read_csv("ennis_data/atp_matches_2012.csv")
 
 
 ### Préparation de la base ----------------------------------------------------------
@@ -65,6 +65,13 @@ df_l_age <- rename(df_l_age, player = loser_name )
 df_player <- full_join(df_winner, df_loser, by = "player")
 
 df_age <- full_join(df_w_age, df_l_age, by = "player")
+df_age <- df_age %>% 
+  group_by(player) %>%
+  summarize(age1 = max(winner_age),
+            age2 = max(loser_age)) %>%
+  rowwise() %>%
+  mutate(age= max(age1, age2,na.rm = TRUE))%>%
+  select(player,age)
 
 # Combinaison des variables
 df_player <- mutate(df_player, ace = w_ace + l_ace,
