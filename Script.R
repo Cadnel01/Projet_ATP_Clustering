@@ -32,10 +32,6 @@ df_winner <- df  %>%
             w_min = mean(minutes, na.rm = TRUE))
 df_winner <- distinct(df_winner,.keep_all = TRUE)
 
-df %>%
-  select(winner_name, winner_age) -> df_w_age
-df_w_age <- distinct(df_w_age,.keep_all = TRUE)
-
 # Créer un tableau agrégé des perdants
 df_loser <- df  %>%
   group_by(loser_name) %>%
@@ -49,29 +45,13 @@ df_loser <- df  %>%
             l_min = mean(minutes, na.rm = TRUE))
 df_loser <- distinct(df_loser,.keep_all = TRUE)
 
-df %>%
-  select(loser_name, loser_age) -> df_l_age
-df_l_age <- distinct(df_l_age,.keep_all = TRUE)
-
 
 # Donner le même nom du variable au "winner_name" et "loser_name"  
 df_loser <- rename(df_loser, player = loser_name )
 df_winner <- rename(df_winner, player = winner_name)
 
-df_w_age <- rename(df_w_age, player = winner_name )
-df_l_age <- rename(df_l_age, player = loser_name )
-
 # Jointure des tables
 df_player <- full_join(df_winner, df_loser, by = "player")
-
-df_age <- full_join(df_w_age, df_l_age, by = "player")
-df_age <- df_age %>% 
-  group_by(player) %>%
-  summarize(age1 = max(winner_age),
-            age2 = max(loser_age)) %>%
-  rowwise() %>%
-  mutate(age= max(age1, age2,na.rm = TRUE))%>%
-  select(player,age)
 
 # Combinaison des variables
 df_player <- mutate(df_player, ace = w_ace + l_ace,
@@ -90,8 +70,26 @@ df_clean <- as.data.frame(df_clean)
 rownames(df_clean) <- df_clean[,1]
 df_clean <- df_clean[,-1]
 
+# Base sur les ages
+
+df %>%
+  select(winner_name, winner_age) -> df_w_age
+df_w_age <- distinct(df_w_age,.keep_all = TRUE)
+
+df %>%
+  select(loser_name, loser_age) -> df_l_age
+df_l_age <- distinct(df_l_age,.keep_all = TRUE)
+
+df_w_age <- rename(df_w_age, player = winner_name )
+df_l_age <- rename(df_l_age, player = loser_name )
+
+df_age <- inner_join(df_w_age, df_l_age, by = "player")
+df_age <- mutate(df_age, age = case_when(winner_age == loser_age ~ round(winner_age), winner_age != loser_age ~ round(loser_age)))
+
 # Etude des corrélations
+
 pairs(df_clean)
+
 
 ### k-means ----------------------------------------------------------------------
 
@@ -143,7 +141,7 @@ fviz_cluster(km, geom="point", data = df_kmeans) + ggtitle("k=3")
 
 ### CAH  --------------------------------------------------------------------------------------------
 
-df_CAH <- as.data.frame(scale(df_clean, center=T, scale=T))
+df_CAH <- as.data.frame(scale(df_clean[,-9], center=T, scale=T))
 
 ## Choix du nombre de clusters ##
 
@@ -204,9 +202,8 @@ factoextra::fviz_cluster(list(data=df_CAH, cluster=clu_4),geom="point", data = d
 
 clusteval::cluster_similarity(df_clean$classe_km, df_clean$classe_hc, similarity = "jaccard")
 clusteval::cluster_similarity(df_clean$classe_km, df_clean$classe_hc, similarity = "rand")
-#les deux partionnement sont très similaires
 
-## Inerties
+## Comparaison des inerties
 
 inertie_cor<-function(df,p=NULL){
   if (is.null(p)){ p <- rep(1,nrow(df))}
@@ -249,52 +246,25 @@ km$betweenss
 
 #### Analyse globale ####
 
-df_CAH %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = height,
-                                      fill = as.character(df_CAH$classe) ))
+#Boxplot sur les 3 clusters (y = height, ace, stin, stWon, svgms, bpFaced, bpSaved, min)
 
-df_CAH %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = ace,
-                                      fill = as.character(df_CAH$classe) ))
-
-df_CAH %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = stin,
-                                      fill = as.character(df_CAH$classe) ))
-
-df_CAH %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = stWon,
-                                      fill = as.character(df_CAH$classe) ))
-
-df_CAH %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = svgms,
-                                      fill = as.character(df_CAH$classe) ))
-
-df_CAH %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = bpFaced,
-                                      fill = as.character(df_CAH$classe) ))
-
-df_CAH %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = bpSaved,
-                                      fill = as.character(df_CAH$classe) ))
-
-df_CAH %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_CAH$classe), y = min,
-                                      fill = as.character(df_CAH$classe) ))
-
+df_clean %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(classe_hc), y = min,
+                                      fill = as.character(classe_hc) ))
 
 ### Séparation des bases ###
 
-df_CAH %>% filter(classe == 1) -> Base1
-Base1 <- Base1[,-c(9,10)]
+df_clean %>% filter(classe_hc == 1) -> Base1
+Base1 <- Base1[,-10]
 
-df_CAH %>% filter(classe == 2) -> Base2
-Base2 <- Base2[,-c(9,10)]
+df_clean %>% filter(classe_hc == 2) -> Base2
+Base2 <- Base2[,-10]
 
-df_CAH %>% filter(classe == 3) -> Base3
-Base3 <- Base3[,-c(9,10)]
+df_clean %>% filter(classe_hc == 3) -> Base3
+Base3 <- Base3[,-10]
 
-df_CAH %>% filter(classe == 4) -> Base4
-Base4 <- Base4[,-c(9,10)]
+df_clean %>% filter(classe_hc == 4) -> Base4
+Base4 <- Base4[,-10]
 
 
 #### Cluster 1 ####
@@ -302,31 +272,61 @@ Base4 <- Base4[,-c(9,10)]
 str(Base1)
 summary(Base1)
 colMeans(Base1) #connaitre les moyennes pour interpréter l'ACP
-diag(cov(Base1)) #dispersion des ecarts types = var influente => ace, height, stin, stwon, min
+diag(cov(Base1)) #dispersion des ecarts types = var influente 
 
 #Etude des correlations
-cor(Base1) #pas d'effet taille
+cor(Base1) #effet taille
 plot(Base1)
+
+#Profil ligne
+profil <- function(x){x/sum(x)*100}
+Base1L <- t(apply(Base1,1,profil))
+View(Base1L)
 
 #Realisation de l'ACP
 acp <- PCA(Base1, scale.unit = T, graph = TRUE, ncp = 2, axes=c(1,2))
+acpL <- PCA(Base1L, scale.unit = T, graph = TRUE, ncp = 3, axes=c(1,2))
+acpL <- PCA(Base1L, scale.unit = T, graph = TRUE, ncp = 3, axes=c(2,3))
 
-# valeurs propres et inertie
+#Valeurs propres et inertie
 acp[1]
 fviz_eig(acp)
 
-# coord - qualité - contrib des variables
+acpL[1]
+fviz_eig(acpL)
+
+#Coord - qualité - contrib des variables
 acp[2]$var$coord
 acp[2]$var$cos2
 acp[2]$var$contrib
 
-# coord - qualité - contrib des individus
+acpL[2]$var$cos2
+acpL[2]$var$contrib
+
+#Coord - qualité - contrib des individus
 acp[3]$ind$coord
 acp[3]$ind$cos2
 acp[3]$ind$contrib
 
-#### Cluster 2 ####
+acpL[3]$ind$cos2
+acpL[3]$ind$contrib
 
+#Lien avec les ages des joueurs
+
+Base1 %>%
+  mutate(player = rownames(Base1)) -> B1_age
+Compa_age <- inner_join(B1_age, df_age, by = "player")
+summary(Compa_age$age)
+
+#Rapport break sauves/rencontres
+
+Base1 %>%
+  mutate(rap_breaks_sauves = bpSaved/bpFaced) -> BP
+
+summary(BP$rap_breaks_sauves)
+
+
+#### Cluster 2 ####
 
 #Taille
 summary(Base2)
@@ -416,30 +416,22 @@ mean(Base2$rap_services)
 
 #### Cluster 3 ####
 
-# Recuperation des joueurs de ce classeurs
-cluster3 <- filter(df_clean, classe_hc == 3)
-
 # Analyse de la taille
 df_clean %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = height,                                      fill = as.character(df_clean$classe_hc) ))
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(classe_hc), y = height,
+                                      fill = as.character(classe_hc) ))
 
-# Taille moyenne du classeur 3
-mean(cluster3$height)
+# Stats de la var height (moyenne, min, max)
+summary(Base3$height)
 
-# Taille minimale du classeur 3
-min(cluster3$height)
-
-# Taille maximale du classeur 3
-max(cluster3$height)
-
-# Resultat: les joueurs dans ce classeur 3 ont des tr?s grandes tailles qui
-# d?passent 1m92 par rapport aux joueurs des autres classeurs qui ont une
+# Resultat: les joueurs dans ce classeur 3 ont des tres grandes tailles qui
+# depassent 1m92 par rapport aux joueurs des autres classeurs qui ont une
 # taille moyenne qui ne d?passe pas 1m85
 
 # Nombre de services gagnants par match
 
 df_clean %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = ace,
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = bpFaced,
                                       fill = as.character(df_clean$classe_hc) ))
 
 # Resultat: Les joueurs dans ce classeur 3 ont tendances ? jouer des
