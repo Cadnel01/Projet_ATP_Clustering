@@ -14,7 +14,7 @@ library(devtools)
 players <- read_csv("tennis_atp/atp_players.csv", col_names = FALSE)
 names(players) <- c("id", "firstname", "lastname", "hand", "birthday", "nat")
 
-df <- read_csv("ennis_data/atp_matches_2012.csv")
+df <- read_csv("tennis_atp/atp_matches_2012.csv")
 
 
 ### Préparation de la base ----------------------------------------------------------
@@ -284,16 +284,16 @@ df_CAH %>%
 
 ### Séparation des bases ###
 
-df_CAH %>% filter(classe_hc == 1) -> Base1
+df_CAH %>% filter(classe == 1) -> Base1
 Base1 <- Base1[,-c(9,10)]
 
-df_CAH %>% filter(classe_hc == 2) -> Base2
+df_CAH %>% filter(classe == 2) -> Base2
 Base2 <- Base2[,-c(9,10)]
 
-df_CAH %>% filter(classe_hc == 3) -> Base3
+df_CAH %>% filter(classe == 3) -> Base3
 Base3 <- Base3[,-c(9,10)]
 
-df_CAH %>% filter(classe_hc == 4) -> Base4
+df_CAH %>% filter(classe == 4) -> Base4
 Base4 <- Base4[,-c(9,10)]
 
 
