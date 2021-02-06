@@ -179,16 +179,18 @@ nb <- NbClust(df_kmeans, distance = "euclidean", min.nc = 2, max.nc = 10, method
 
 L'ensemble des critères de recherche du nombre optimal de clusters pour la CAH propose un nombre optimal de clusters de 3. Cependant, pour être sûr de trouver le meilleur partitionnement, nous allons comparer la CAH à 3 clusters avec la CAH à 4 clusters.
 
-| Méthode | Nombre de clusters optimal |
-|:-: |:-: |
-| Ward.D | 3 |
-| single | 3 |
-| complete | 3 |
-| average | 3 |
-| mcquitty | 3 |
-| median | 3 |
-| centroid | 3 |
-| ward.D2 | 3 |
+
+```{r tab1, echo = FALSE, eval = TRUE}
+
+`Méthode`= c("ward.D","single","complete","average","mcquitty","median","centroid","ward.D2")
+`Nombre de clusters`=  c("3","3","3","3","3","3","3","3")
+tab <- cbind(`Méthode`,`Nombre de clusters`)
+kable(tab, caption="(ref:tab1)") %>%
+  kable_styling(position="center", latex_options= c("striped", "HOLD_position"))
+
+```
+
+(ref:tab1) Nombre de clusters optimal pour la méthode de CAH selon les critères.
 
 ### Comparaison des coefficients de silhouette
 
@@ -207,15 +209,19 @@ df_clean$classe_km <- km$cluster
 
 ```
 
-| Kmeans à 4 clusters | | |
-|:-: |--- |--- |
-| Cluster | Nombre d'individus | Coefficient de silhouette moyen |
-|	1	| 24 | 0.29	|
-|	2	| 14 | 0.18	|
-|	3	| 102 | 0.28 |
-|	4	| 14 | 0.18 |
-| Coefficient de silhouette moyen | 0.25 | |
 
+```{r tab2, echo = FALSE, eval = TRUE}
+
+`Cluster`= c("1","2","3","4")
+`Nombre d'individus`=  c("24","14","47","102")
+`Coefficients de silhouette moyens`=  c("0,29","0,18","0,28","0,18")
+tab <- cbind(`Cluster`,`Nombre d'individus`,`Coefficients de silhouette moyens`)
+kable(tab, caption="(ref:tab4)") %>%
+  kable_styling(position="center", latex_options= c("striped", "HOLD_position"))
+
+```
+
+(ref:tab2) Coefficients de silhouette moyens avec la méthode des Kmeans à 4 clusters.
 
 
 ```{r, echo = FALSE, eval = TRUE, message = FALSE}
@@ -240,24 +246,33 @@ plot(si_cah_4)
 
 
 ```
-| CAH à 3 clusters | | |
-|:-: |--- |--- |
-| Cluster | Nombre d'individus | Coefficient de silhouette moyen |
-|	1	| 24 | 0.49	|
-|	2	| 14 | 0.31	|
-|	3	| 149 | 0.44 |
-| Coefficient de silhouette moyen | 0.38 | |
+
+```{r tab3, echo = FALSE, eval = TRUE}
+
+`Cluster`= c("1","2","3")
+`Nombre d'individus`=  c("24","14","149")
+`Coefficients de silhouette moyens`=  c("0,49","0,31","0,44")
+tab <- cbind(`Cluster`,`Nombre d'individus`,`Coefficients de silhouette moyens`)
+kable(tab, caption="(ref:tab3)") %>%
+  kable_styling(position="center", latex_options= c("striped", "HOLD_position"))
+
+```
+
+(ref:tab3) Coefficients de silhouette moyens avec la méthode CAH à 3 clusters.
 
 
-| CAH à 3 clusters | | |
-|:-: | --- |--- |
-| Cluster | Nombre d'individus | Coefficient de silhouette moyen |
-|	1	| 24 | 0.46	|
-|	2	| 14 | 0.28	|
-|	3	| 47 | 0.29	|
-|	4	| 102 |	0.38 |
-| Coefficient de silhouette moyen | 0.32 | |
+```{r tab4, echo = FALSE, eval = TRUE}
 
+`Cluster`= c("1","2","3","4")
+`Nombre d'individus`=  c("24","14","47","102")
+`Coefficients de silhouette moyens`=  c("0,46","0,28","0,29","0,38")
+tab <- cbind(`Cluster`,`Nombre d'individus`,`Coefficients de silhouette moyens`)
+kable(tab, caption="(ref:tab4)") %>%
+  kable_styling(position="center", latex_options= c("striped", "HOLD_position"))
+
+```
+
+(ref:tab4) Coefficients de silhouette moyens avec la méthode CAH à 4 clusters.
 
 Les coefficients de silhouette sont meilleurs avec la méthode de la CAH plutôt qu'avec les Kmeans. De plus, à l'aide de la fonction cluster_similarity du package clusteval, les indice de Jaccard (égal à 1 ici) et de Rand (1 également) nous montre qu'un kmeans à 4 clusters nous donne la même partition qu'une CAH à 4 clusters. Le choix se fait donc entre une CAH à 3 ou 4 clusters. Pour faire ce choix il faut comparer les inerties des classifications. 
 
@@ -295,16 +310,27 @@ inertie_intra_cor <- function(df,lab){
 
 ```
 
-|   |   CAH à 3 clusters |   CAH à 4 clusters |
-|---    |:-:    |:-:   |
-| Inertie intraclasse | 976,72 | 704,78 |
-| Inertie interclasse | 900,72 | 1172,67 |
+
+```{r tab5, echo = FALSE, eval = TRUE}
+
+`CAH`= c("Intertie interclasse","Intertie interclasse")
+`3 clusters`=  c("976,72","900,72")
+`4 clusters`=  c("704,78","1172,67")
+tab <- cbind(`CAH`,`3 clusters`,`4 clusters`)
+kable(tab, caption="(ref:tab5)") %>%
+  kable_styling(position="center", latex_options= c("striped", "HOLD_position"))
+
+```
+
+(ref:tab5) Inertie intra et interclasse par la méthode de CAH à 3 et 4 clusters.
 
 La CAH à 4 clusters minimise le mieux l'inertie intraclasse et maximise le mieux l'inertie interclasse, en comparaison avec la CAH à 3 clusters et ce phénomène a été vérifié en comparant avec les résultats des Kmeans. Ainsi la méthode sélectionnée est la méthode des CAH à l'aide du critère de ward avec 4 clusters. 
 
-```{r, echo = FALSE, eval = TRUE}
+(ref:clust) Clustering par la méthode de CAH avec la distance euclidienne et le critère de ward.
 
-factoextra::fviz_cluster(list(data=df_CAH, cluster=clu_4),geom="point", data = df_CAH)
+```{r clust, fig.cap="(ref:clust)", echo = FALSE, eval = TRUE}
+
+factoextra::fviz_cluster(list(data=df_CAH, cluster=clu_4),geom="point", data = df_CAH, main='')
 
 ```
 
@@ -331,16 +357,22 @@ Ainsi ce groupe serait composé des joueurs plutôt de petite taille, n'ayant pa
 
 # (APPENDIX) Annexes {-}
 
-# Comparaison du taux d'aces réalisés et de la taille des joueurs dans les différents clusters.
+## Comparaison du taux d'aces réalisés et de la taille des joueurs dans les différents clusters.
 
-```{r, echo = FALSE, eval = TRUE}
+
+(ref:ace) Répartition du nombre de aces et de la taille des joueurs au sein des clusters
+
+```{r ace, fig.cap="(ref:ace)", echo = FALSE, eval = TRUE}
 
 df_clean %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(classe_hc), y = ace,
-                                      fill = as.character(classe_hc) )) -> g_age
+  ggplot() + 
+  geom_boxplot(mapping = aes(x = as.character(classe_hc), y = ace, fill = as.character(classe_hc) )) +
+  labs(fill = 'Clusters', y = 'Nombre moyen de aces', x = '') -> g_age
+
 df_clean %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(classe_hc), y = height,
-                                      fill = as.character(classe_hc) )) -> g_height
+  ggplot() + 
+  geom_boxplot(mapping = aes(x = as.character(classe_hc), y = height, fill = as.character(classe_hc) )) +
+  labs(fill = 'Clusters', y = 'Taille (en cm)', x = '') -> g_height
 
 gridExtra::grid.arrange(g_age, g_height, ncol = 2, nrow = 1)
 
@@ -349,58 +381,79 @@ gridExtra::grid.arrange(g_age, g_height, ncol = 2, nrow = 1)
 Le taux de ace par clusters semble très différent. En effet, les joueurs du cluster 1 ont un taux de ace plus faible que la moyenne (score de 11) pour la quasi totalité des joueurs. Les joueurs du cluster 4 sont quand à eux 75% à avoir un taux plus faible que la moyenne. Concernant le cluster 2 les résultats s'améliorent avec plus de 25% des joueurs ayant un taux de ace au dessus de la moyenne. Enfin le cluster 3 se démarque par la quasi-totalité de ses joueurs ayant un taux de ace au dessus de la moyenne. En prenant le pourcentage de ace par rapport au nombre de services réussis, ce phénomène se confirme. En effet, le cluster 3 se démarque avec en moyenne 18% de ace parmis leurs services réussis. Les clusters 1, 4 et 2 se retrouvent avec respectivement 8,8% , 9% et presque 11%. On retrouve bien les clusters 1 et 4 avec le moins de aces réalisés et le cluster 2 avec des meilleurs performances mais encore loin de celles du cluster 3.
 
 
-|   |   % moyen de ace |
-|---    |:-:    |
-| Cluster 1 | 8,76 |
-| Cluster 2 | 10,84 |
-| Cluster 3 | 18,55 |
-| Cluster 4 | 9,07 |
 
 
-les joueurs du cluster 1 ont un taux de ace plus faible que la moyenne pour la quasi totalité des joueurs. Les joueurs du cluster 4 sont quand à eux 75% à avoir un taux plus faible que la moyenne. Concernant le cluster 2 les résultats s'améliore avec plus de 25% des joueurs ayant un taux de ace au dessus de la moyenne. Enfin le cluster 3 se démarque par la quasi-totalité de ses joueurs ayant un taux de ace au dessus de la moyenne. 
+```{r tab6, echo = FALSE, eval = TRUE}
+
+`Cluster`= c("1","2","3","4")
+`Pourcentage moyen de ace`=  c("8,76","10,84","18,55","9,07")
+tab <- cbind(`Cluster`,`Pourcentage moyen de ace`)
+kable(tab, caption="(ref:tab6)") %>%
+  kable_styling(position="center", latex_options= c("striped", "HOLD_position"))
+
+```
+
+(ref:tab6) Pourcentage moyen de ace par clusters.
 
 Il y a un phénomène similaire concernant la taille des joueurs au sein des clusters. En effet, le cluster 1 et 4 ayant les moins bon taux de ace ont également les joueurs les plus petits, 75% de leurs joueurs sont plus petits que la moyenne des joueurs ATP de 2012 qui est de 1m85. Les joueurs du cluster 2 ont une taille plutôt bien répartie autour de la moyenne. Enfin, le cluster 3 se démarque par des joueurs de grandes tailles, la quasi totalité des joueurs ont une taille supérieur à la moyenne de 1m85.
 
 On remarque donc une forte corrélation entre le fait d'être de grande taille et d'avoir une meilleure performance dans la réalisation de ace.
 
-# Rapport brek points sauvés/rencontrés pour chaque cluster
+## Rapport brek points sauvés/rencontrés pour chaque cluster
 
-|   |   % moyen de break points sauvés |
-|---    |:-:    |
-| Cluster 1 | 51,15 |
-| Cluster 2 | 63,54 |
-| Cluster 3 | 63,01 |
-| Cluster 4 | 59,69 |
+```{r tab7, echo = FALSE, eval = TRUE}
+
+`Cluster`= c("1","2","3","4")
+`Pourcentage moyen de points de break sauvés`=  c("51,15","63,54","63,01","59,69")
+tab <- cbind(`Cluster`,`Pourcentage moyen de points de break sauvés`)
+kable(tab, caption="(ref:tab7)") %>%
+  kable_styling(position="center", latex_options= c("striped", "HOLD_position"))
+
+```
+
+(ref:tab7) Pourcentage moyen de points de break sauvés par clusters.
 
 Lorsque l'on regarde le pourcentage moyen de break points sauvés on remarque que les joueurs du cluster 1 ne sauvent que 51% des breaks, tandis que pour les autres clusters ce pourcentage est au minimum de 60%. En particulier les les joueurs du clusters 2 et 3 ont des pourcentages de réussite d'environ 63%.
 
-# Comparaison des services réussis pour chaque cluster
+## Comparaison des services réussis pour chaque cluster
 
-```{r, echo = FALSE, eval = TRUE}
+(ref:stin) Répartition du nombre moyen de services réussis au sein des clusters
+
+```{r stin, fig.cap="(ref:stin)", echo = FALSE, eval = TRUE}
 
 df_clean %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(classe_hc), y = stin,
-                                      fill = as.character(classe_hc) ))
+  ggplot() + 
+  geom_boxplot(mapping = aes(x = as.character(classe_hc), y = stin, fill = as.character(classe_hc) )) +
+  labs(y = 'Nombre moyen de services réussis', x = '',fill ='Clusters')
 
 ```
 
 Le taux de services réussis du premier coup semble hétérogènes selon les clusters. En effet, les joueurs du cluster 2 semblent se détacher avec de meilleures performance. A l'opposé les joueurs du cluster 1 semblent avoir de moins bonnes performances, plus de difficultés à réussir leur service du premier coup. Cependant, lorsque l'on regarde le taux de services réussis en fonction du nombre de services faits, on observe que dans tous les clusters le pourcentage moyen de services réussis du premier coup est d'environ 60%. Le taux de services réussis du premier coup n'est donc pas un critère déterminant pour différencier les différents clusters.
 
-|   |   % moyen de services réussis du premier coup |
-|---    |:-:    |
-| Cluster 1 | 59,43 |
-| Cluster 2 | 60,93 |
-| Cluster 3 | 61,34 |
-| Cluster 4 | 60,89 |
+
+```{r tab8, echo = FALSE, eval = TRUE}
+
+`Cluster`= c("1","2","3","4")
+`Pourcentage de services réussis du premier coup`=  c("59,43","60,93","61,34","60,89")
+tab <- cbind(`Cluster`,`Pourcentage de services réussis du premier coup`)
+kable(tab, caption="(ref:tab8)") %>%
+  kable_styling(position="center", latex_options= c("striped", "HOLD_position"))
+
+```
+
+(ref:tab8) Pourcentage de services réussis du premier coup par clusters.
 
 
-# Comparaison de la durée moyenne des matchs dans les différents clusters.
+## Comparaison de la durée moyenne des matchs dans les différents clusters.
 
-```{r, echo = FALSE, eval = TRUE}
+(ref:min) Répartition de la durée moyenne des matchs au sein des clusters
+
+```{r min, fig.cap="(ref:min)", echo = FALSE, eval = TRUE}
 
 df_clean %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(classe_hc), y = min,
-                                      fill = as.character(classe_hc) ))
+  ggplot() + 
+  geom_boxplot(mapping = aes(x = as.character(classe_hc), y = min, fill = as.character(classe_hc) )) +
+  labs(y = 'Durée moyenne des matchs (minutes)', x = '', fill ='Clusters')
 
 ```
 
