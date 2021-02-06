@@ -351,7 +351,8 @@ df_clean %>% filter(classe_hc == 2) -> Base2
 Base2 <- Base2[,-c(9,10)]
 summary(Base2)
 df_clean %>% 
-  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = height,                                    fill=as.character(df_clean$classe_hc) ))
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = height,  
+                                      fill=as.character(df_clean$classe_hc) ))
 ```
 La taille moyenne des joueurs de ce cluster varient entre 173 et 190 cm avec une moyenne de 184.2
 Ces joueurs sont rélativement grands par rapport aux groupes 1 et 4
