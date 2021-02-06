@@ -428,8 +428,23 @@ On a donc des joueurs qui sont très bons en service et gagnent d'importantes ba
 ### Cluster 3
 
 ### Cluster 4
+  ```{r}
+df_clean %>% filter(classe_hc == 4) -> Base4
+Base4 <- Base4[,-c(9,10)]
+```
+le 4 ème groupe  contient ,`r round(nrow(Base4)/nrow(df_clean)*100,2)`% observation Les joueurs les plus connus,dans ce cluster sont nottament, Nadal, Wavrinka
+Les joueurs qui composes ce groupe, ont en moyenne 27 ans. Pour la plus part ils sont donc expérimenté dans ce sport. Les joueurs font en moyen `r round(mean(Base4$height),2)` cm. considérer a d'autre cluster, ce groupes a une taille plus faible en moyenne.
 
+En moyenne, tous les joueurs de ce groupe initatelement sont généralement bon en service, en effet ils réussisent en genéral tous leurs serives par ailleurs, on constate par ailleurs que ces jouerus utilise ces attouts pour gagner leurs premier dès le services. Par ailleurs, ces joueurs sont très fort sur les balle de break car lorsqu'ils ont a faire face a une balle de break, 75% du temps ils arrivent a la sauvé. Par ailleurs le graphique (annexe 5) permet de montrer la corélation entre le nombre de break auquel les joueurs et le nombre de break qu'ils ont gagné ainsi on aperçoit clairement que lorsque le nombre de break auquel ils font fasse augmente, il est plus probable que ces dernier arrive à la sauvé.
+Par ailleurs, ce groupe joue en moyenne 3h41 en moyenne, Ceci s'explique par la présence de grand joueurs tels que:
 
+- Nadal
+- Monfils
+- Lewitt ...
+
+Ces joueurs participe au grand chellems qui se jouent sur 3 sets et non 2. Ainsi cela signifie qui doivent jouer plus que la moyenne.
+
+La présene d'Hernych et  Denis Gremelmayr sont a douter. En effet, Ces 2 joueurs ne correspondent pas aux critère cité plus haut.(annexe 6) ils doivent jouer probablement avec un autre style de jeu.
 
 # Conclusion
 
@@ -539,3 +554,19 @@ df_clean %>%
 La durée moyenne des matchs varient en fonction des clusters. En effet, le cluster 1 a une durée des matchs nettement inférieure à la durée moyenne de 1h45. Tandis que les joueurs des clusters 3 et 4 ont joués des matchs avec une durée aux alentours de la durée moyenne. Enfin, les joueurs du cluster 2 ont une tendance à jouer des matchs nettement plus longs que la moyenne. 
 Ce phénomène pourrait s'expliquer par le nombre de matchs joués en grands chelems par les joueurs des différents clusters.
 
+# Corelation entre le nombre de break auquel ils ont fait face et sauvé
+```{r Graph 4 cluster, echo = FALSE, eval = TRUE}
+ggplot(data=Base4,mapping = aes(x=bpFaced,y=bpSaved))+
+  geom_point()+geom_smooth(method="lm")+
+  ggtitle("Balle de Break Sauvé")+
+  guides(fill=F)->a
+print(a)
+```
+
+## ACP pour le cluster 4
+
+```{r}
+a<-FactoMineR::PCA(Base4,scale.unit = T)
+fviz_pca(a)
+```
+L'ACP permet de confirmer que les 2 joureurs cité plus haut ne font pas partie du bon groupe. En effet ces dernier peuvent être considerer comme des individus suplémentaire. Par ailleurs la contribution de chacun s'élévent à 0.0194 et 0.0549, ceux qui est très faible 
