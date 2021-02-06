@@ -23,9 +23,11 @@ df <- read_csv("tennis_atp/atp_matches_2012.csv")
 df_winner <- df  %>%
   group_by(winner_name) %>%
   summarise(w_ace = mean(w_ace, na.rm = TRUE),
-            w_ht = winner_ht, 
+            w_ht = winner_ht,
+            w_age= round(winner_age),
             w_stIn = mean(w_1stIn, na.rm = TRUE),
             w_stWon = mean(w_1stWon, na.rm = TRUE),
+            w_svpt = mean(w_svpt, na.rm = TRUE),
             w_svgms = mean(w_SvGms, na.rm = TRUE),
             w_bpSaved = mean(w_bpSaved, na.rm = TRUE),
             w_bpFaced = mean(w_bpFaced, na.rm = TRUE),
@@ -37,8 +39,10 @@ df_loser <- df  %>%
   group_by(loser_name) %>%
   summarise(l_ace = mean(l_ace, na.rm = TRUE),
             l_ht = loser_ht, 
+            l_age= round(loser_age),
             l_stIn = mean(l_1stIn, na.rm = TRUE),
             l_stWon = mean(l_1stWon, na.rm = TRUE),
+            l_svpt = mean(l_svpt, na.rm = TRUE),
             l_svgms = mean(l_SvGms, na.rm = TRUE),
             l_bpSaved = mean(l_bpSaved, na.rm = TRUE),
             l_bpFaced = mean(l_bpFaced, na.rm = TRUE),
@@ -56,35 +60,24 @@ df_player <- full_join(df_winner, df_loser, by = "player")
 # Combinaison des variables
 df_player <- mutate(df_player, ace = w_ace + l_ace,
                     height = case_when(w_ht == l_ht ~ w_ht, w_ht != l_ht ~ l_ht),
+                    age = round(max(w_age,l_age)),
                     stin = w_stIn  + l_stIn,
                     stWon = w_stWon + l_stWon,
+                    svpt = w_svpt +l_svpt,
                     svgms = w_svgms + l_svgms,
                     bpSaved = w_bpSaved + l_bpSaved,
                     bpFaced = w_bpFaced + l_bpFaced,
                     min = l_min + w_min) %>%
-            select(ace, height, stin, stWon, svgms, bpSaved, bpFaced, min)
+  select(ace, height, age, stin, stWon, svpt, svgms, bpSaved, bpFaced, min)
 
 # Supprimer les valeurs manquantes
-df_clean <- drop_na(df_player)
+df_player <- distinct(df_player,.keep_all = TRUE)
+df_player %>%
+  select(ace, height, stin, stWon, svgms, bpSaved, bpFaced, min) %>%
+  drop_na() -> df_clean
 df_clean <- as.data.frame(df_clean)
 rownames(df_clean) <- df_clean[,1]
 df_clean <- df_clean[,-1]
-
-# Base sur les ages
-
-df %>%
-  select(winner_name, winner_age) -> df_w_age
-df_w_age <- distinct(df_w_age,.keep_all = TRUE)
-
-df %>%
-  select(loser_name, loser_age) -> df_l_age
-df_l_age <- distinct(df_l_age,.keep_all = TRUE)
-
-df_w_age <- rename(df_w_age, player = winner_name )
-df_l_age <- rename(df_l_age, player = loser_name )
-
-df_age <- inner_join(df_w_age, df_l_age, by = "player")
-df_age <- mutate(df_age, age = case_when(winner_age == loser_age ~ round(winner_age), winner_age != loser_age ~ round(loser_age)))
 
 # Etude des corrélations
 
@@ -93,7 +86,6 @@ pairs(df_clean)
 
 ### k-means ----------------------------------------------------------------------
 
-set.seed(123)
 df_kmeans <- as.data.frame(scale(df_clean, center=T, scale=T))
 
 ## Choix du nombre de clusters ##
@@ -152,7 +144,7 @@ for (i in liste){
   D = dist(df_CAH,"euclidean")
   cah <- hclust(D,method = i)
   inertie <- sort(cah$height, decreasing = TRUE)
-  plot(inertie[1:20], type = "s", xlab = "Nombre de clusters", ylab = "Inertie",main=paste0("Dendogramme ", i))
+  plot(inertie[1:20], type = "s", xlab = "Nombre de clusters", ylab = "Inertie", main=paste0("Dendogramme ", i))
   plot(cah, main = paste0("Dendogramme avec la methode ", i))
   rect.hclust(cah, k = JLutils::best.cutree(cah))
   print(paste0("Cluster ", JLutils::best.cutree(cah)," pour la methode ",i))
@@ -167,8 +159,8 @@ CAH <- hclust(D_cah, method = "ward.D2")
 plot(CAH)
 
 # Comparaison 3 - 4 clusters avec CAH
-clu_3 <- cutree(CAH,3)
 clu_4 <- cutree(CAH,4)
+clu_3 <- cutree(CAH,3)
 si_cah_3 <- cluster::silhouette(clu_3, D_cah)
 plot(si_cah_3)
 si_cah_4 <- cluster::silhouette(clu_4, D_cah)
@@ -252,78 +244,49 @@ df_clean %>%
   ggplot()+geom_boxplot(mapping = aes(x = as.character(classe_hc), y = min,
                                       fill = as.character(classe_hc) ))
 
+
 ### Séparation des bases ###
 
 df_clean %>% filter(classe_hc == 1) -> Base1
-Base1 <- Base1[,-10]
+Base1 <- Base1[,-c(9,10)]
 
 df_clean %>% filter(classe_hc == 2) -> Base2
-Base2 <- Base2[,-10]
+Base2 <- Base2[,-c(9,10)]
 
 df_clean %>% filter(classe_hc == 3) -> Base3
-Base3 <- Base3[,-10]
+Base3 <- Base3[,-c(9,10)]
 
 df_clean %>% filter(classe_hc == 4) -> Base4
-Base4 <- Base4[,-10]
+Base4 <- Base4[,-c(9,10)]
 
 
 #### Cluster 1 ####
 
-str(Base1)
 summary(Base1)
-colMeans(Base1) #connaitre les moyennes pour interpréter l'ACP
-diag(cov(Base1)) #dispersion des ecarts types = var influente 
+colMeans(Base1)
 
-#Etude des correlations
-cor(Base1) #effet taille
-plot(Base1)
-
-#Profil ligne
-profil <- function(x){x/sum(x)*100}
-Base1L <- t(apply(Base1,1,profil))
-View(Base1L)
-
-#Realisation de l'ACP
-acp <- PCA(Base1, scale.unit = T, graph = TRUE, ncp = 2, axes=c(1,2))
-acpL <- PCA(Base1L, scale.unit = T, graph = TRUE, ncp = 3, axes=c(1,2))
-acpL <- PCA(Base1L, scale.unit = T, graph = TRUE, ncp = 3, axes=c(2,3))
-
-#Valeurs propres et inertie
-acp[1]
-fviz_eig(acp)
-
-acpL[1]
-fviz_eig(acpL)
-
-#Coord - qualité - contrib des variables
-acp[2]$var$coord
-acp[2]$var$cos2
-acp[2]$var$contrib
-
-acpL[2]$var$cos2
-acpL[2]$var$contrib
-
-#Coord - qualité - contrib des individus
-acp[3]$ind$coord
-acp[3]$ind$cos2
-acp[3]$ind$contrib
-
-acpL[3]$ind$cos2
-acpL[3]$ind$contrib
+Base1 %>%
+  mutate(player = rownames(Base1)) -> B1_player
 
 #Lien avec les ages des joueurs
 
-Base1 %>%
-  mutate(player = rownames(Base1)) -> B1_age
-Compa_age <- inner_join(B1_age, df_age, by = "player")
+Compa_age <- inner_join(B1_player, df_player, by = "player")
+Compa_age <- select(Compa_age, player, age)
 summary(Compa_age$age)
 
 #Rapport break sauves/rencontres
 
 Base1 %>%
-  mutate(rap_breaks_sauves = bpSaved/bpFaced) -> BP
+  mutate(rap_breaks_sauves = bpSaved/bpFaced) -> Base1
+summary(Base1$rap_breaks_sauves) #51%
 
-summary(BP$rap_breaks_sauves)
+#Rapport services
+
+Compa_services <- inner_join(B1_player, df_player)
+Compa_services %>%
+  select(player, stin, stWon, svpt) %>%
+  mutate(rap_services = stin/svpt) -> Compa_services
+summary(Compa_services$rap_services) #59%
 
 
 #### Cluster 2 ####
@@ -404,14 +367,14 @@ acp[3]$ind$contrib
 #tel que Alessandro Gianessi 
 
 Base2 %>%
-  mutate(Base2, rap_breaks_sauves = bpSaved/bpFaced) -> Base2
+  mutate(Base2, rap_breaks_sauves = bpSaved/bpFaced) -> Base2 #63%
 
 Base2 %>%
   mutate(Base2, rap_services = stWon/stin) -> Base2
 
-mean(Base2$rap_breaks_sauves)
-mean(Base2$svgms)
-mean(Base2$rap_services)
+summary(Base2$rap_breaks_sauves)
+summary(Base2$svgms)
+summary(Base2$rap_services)
 
 
 #### Cluster 3 ####
@@ -484,9 +447,12 @@ Base3 %>%
 Base3 %>%
   mutate(Base3, rap_aces = ace/stWon) -> Base3
 
+Base3 %>%
+  mutate(rap_breaks_sauves = bpSaved/bpFaced) -> Base3
+
 mean(Base3$rap_services)
 mean(Base3$rap_aces)
-
+summary(BP$rap_breaks_sauves) #63%
 
 #### Cluster 4 ####
 head(Base4)
@@ -540,5 +506,9 @@ explor::PCA_ind_plot(res, xax = 1, yax = 2, ind_sup = TRUE, lab_var = NULL,
                      labels_positions = NULL, xlim = c(-5.57, 5.09), ylim = c(-4.98, 5.68))
                      #le cluster 4 peut donc distinguer des joueurs avec un style de jeu assez deffensive( tels monfils) mais aussi avec des frappe de l'espace( Nadal GANG)
                      
+Base4 %>%
+  mutate(rap_breaks_sauves = bpSaved/bpFaced) -> Base4
+
+summary(BP$rap_breaks_sauves) #60%
 
 
