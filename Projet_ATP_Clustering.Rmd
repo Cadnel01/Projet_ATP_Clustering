@@ -172,10 +172,11 @@ Notre objectif est de déterminer différents profils de joueurs selon leur type
 set.seed(123)
 df_kmeans <- as.data.frame(scale(df_clean, center=T, scale=T))
 nb <- NbClust(df_kmeans, distance = "euclidean", min.nc = 2, max.nc = 10, method = "kmeans")
+a<-invisible(fviz_nbclust(nb,print.summary = T))
 ```
-```{r, include = FALSE,echo= FALSE}
-#fviz_nbclust(nb) 
-#Trouver comment prendre que le dernier graph
+
+```{r}
+plot(a)
 ```
 
 L'ensemble des critères de recherche du nombre optimal de clusters pour la CAH propose un nombre optimal de clusters de 3. Cependant, pour être sûr de trouver le meilleur partitionnement, nous allons comparer la CAH à 3 clusters avec la CAH à 4 clusters.
@@ -354,7 +355,34 @@ En définitive, les joueurs de ce cluster ont une taille moyenne et ont l'avanta
 
 ### Cluster 3
 
-A FAIRE
+```{r}
+df_clean %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(classe_hc), y = height,
+                                      fill = as.character(classe_hc) ))+  xlab("Classeur")+labs(fill="Classeur")
+#Statistiques de la variable « height » (moyenne, min, max)
+#summary(Base3$height)
+```
+Les joueurs dans ce classeur 3 ont des très grandes tailles qui dépassent 1m92 par rapport aux joueurs des autres classeurs qui ont une taille moyenne qui ne dépasse pas 1m85
+
+```{r}
+df_clean %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = bpFaced,
+                                      fill = as.character(df_clean$classe_hc) ))+
+    xlab("Classeur")+labs(fill="Classeur")
+```
+Les joueurs dans ce classeur 3 ont tendances à jouer des bons services. Le nombre moyen des services gagnants par match pour les joueurs de ce classeur est élevé par rapport aux autres  (18 services gagnants par match pour ce classeur tandis que cette moyenne ne dépasse pas 13 services chez les autres)
+Le Nombre de service réussis du premier coup est  au-dessus de la moyenne et prend la deuxième classe parmi les classeurs
+```{r}
+df_clean %>% 
+  ggplot()+geom_boxplot(mapping = aes(x = as.character(df_clean$classe_hc), y = stWon,
+                                      fill = as.character(df_clean$classe_hc) ))+
+  xlab("Classeur")+labs(fill="Classeur")
+
+
+```
+Le Nombre de fois où le joueur a gagné le premier point dès le premier service est au-dessus de la moyenne (73 par match) 
+
+Les joueurs de ce classeur ont une grande taille, ce qui leurs donnent un grand avantage dans leurs services
 
 ### Cluster 4
 
