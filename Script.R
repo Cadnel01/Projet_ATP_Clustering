@@ -454,6 +454,7 @@ mean(Base3$rap_services)
 mean(Base3$rap_aces)
 summary(BP$rap_breaks_sauves) #63%
 
+
 #### Cluster 4 ####
 head(Base4)
 print(paste0("le 4ème cluster est celui est un cluster qui contient ",round(nrow(Base4)/nrow(df_clean)*100,2),"% observation Les joueurs les plus connus,dans ce cluster sont nottament, Heywitt, Monfils"))
