@@ -64,7 +64,7 @@ opts_chunk$set(comment = '', echo = FALSE,  tidy = TRUE,
 ```
 
 ```{r, include = FALSE}
-
+setwd('C:/Users/Leon/Documents/M2/SEP0942_Regnault')
 players <- read_csv("tennis_atp/atp_players.csv", col_names = FALSE)
 names(players) <- c("id", "firstname", "lastname", "hand", "birthday", "nat")
 
@@ -139,33 +139,33 @@ df_clean <- df_clean[,-1]
 
 # Contextualisation
 
-  Au tennis il existe différents styles de jeu : les défenseurs, les attaquants de fond de court, les contreurs, les joueurs complets et les attaquants de type service volée. Il ne faut pas oublier que chaque joueur est différent pour un même style de jeu. En effet, la tactique pourra être différente en fonction de l'adversaire et en fonction de l'état physique et psychologique du joueur.
+  Au tennis, il existe différents styles de jeu : les défenseurs-contreurs, les attaquants de fond de court, les attaquants de type service-volée et les joueurs complets. Il ne faut pas oublier que chaque joueur est différent pour un même style de jeu. En effet, la tactique pourra être différente en fonction de l'adversaire et en fonction de l'état physique et psychologique du joueur.
 
-Notre objectif est de déterminer différents profils de joueurs selon leur type de jeu en se basant sur l'année 2012 des résultats des matchs ATP.
+Notre objectif est de déterminer différents profils de joueurs selon leur type de jeu, en se basant sur l'année 2012 des résultats des matchs ATP.
 
 
 ## Choix des variables
 
-  Nos bases de données correspondent aux résultats des matchs de tennis des circuits professionnels ATP téléchargeables depuis les dépôts GitHub de Jeff Sackmann. L’objectif est de rendre compte du plus large aspect possible en terme de jeu pratiqué. Au total, ce sont 8 variables explicatives numériques qui ont été sélectionnées :
+  Nos bases de données correspondent aux résultats des matchs de tennis des circuits professionnels ATP, téléchargeables depuis les dépôts GitHub de Jeff Sackmann. L’objectif est de rendre compte du plus large aspect possible en terme de jeu pratiqué. Au total, ce sont 8 variables explicatives numériques qui ont été sélectionnées :
 
 * minutes : La durée du match
-* l/w_ace : Nombre des services gagnants par match
-* l/w_df : Nombre de services gagnés par doubles fautes de l'adversaire (par match)
-* l/w_svpt : Nombre de service servi (par match)
-* l/w_1stIn : Nombre de services réussis du premier coup
-* l/w_2ndWon : Nombre de fois où le joueur a gagné le premier point dès le deuxième service
-* l/w_SvGms : Nombre de parties où le joueur a serv
-* l/w_bpSaved : Nombre de points de break sauvé
-* l/w_bpFaced : Nombre de points de break rencontrés
+* l/w_ace : Nombre des services gagnants par match (par match)
+* l/w_df : Nombre de doubles-fautes commises par le joueur (par match)
+* l/w_svpt : Nombre de fois où le joueur a servi (par match)
+* l/w_1stIn : Nombre de premiers services réussis (par match)
+* l/w_2ndWon : Nombre de points gagnés après le deuxième service (par match)
+* l/w_SvGms : Nombre de jeux de service gagnés (par match)
+* l/w_bpSaved : Nombre de balles de break sauvées (par match)
+* l/w_bpFaced : Nombre de balles de break subies (par match)
 * loser/winner_ht : La taille du joueur
 
 # Clustering
 
-  Nous souhaitons faire un clustering pour séparer les joueurs ATP de l'année 2012 en différents groupes de joueurs caractérisés principalement par le style de jeu des joueurs.
+  Nous souhaitons faire un clustering pour séparer les joueurs ATP sur la saison 2012 en différents groupes de joueurs, caractérisés principalement par leur style de jeu.
 
 ## Choix du partitionnement
 
-  Pour réaliser ce clustering nous avons comparé les résultats des méthodes Kmeans et de classification ascendante hiérarchique (CAH). Dans un premier temps, il faut trouver le nombre de clusters optimal. Pour la méthode des kmeans nous avons utilisé la fonction nbclust du package NbClust, nous donnant le nombre optimal de clusters pour la méthode des kmeans avec comme distance choisie la distance euclidienne.
+  Pour réaliser ce clustering, nous avons comparé les résultats des méthodes Kmeans et de classification ascendante hiérarchique (CAH). Dans un premier temps, il faut trouver le nombre optimal de clusters. Pour la méthode des kmeans, nous avons utilisé la fonction nbclust du package NbClust, nous donnant le nombre optimal de clusters, avec comme distance choisie la distance euclidienne.
 
 ```{r, include = FALSE,echo= FALSE}
 
@@ -195,7 +195,7 @@ kable(tab, caption="(ref:tab1)") %>%
 
 ### Comparaison des coefficients de silhouette
 
-  Dans un premier temps nous allons comparer les coefficients de silhouette des différents partitionnements.
+  Dans un premier temps, nous allons comparer les coefficients de silhouette des différents partitionnements.
 
 ```{r, echo = FALSE, eval = TRUE}
 
@@ -275,11 +275,11 @@ kable(tab, caption="(ref:tab4)") %>%
 
 (ref:tab4) Coefficients de silhouette moyens avec la méthode CAH à 4 clusters.
 
-Les coefficients de silhouette sont meilleurs avec la méthode de la CAH plutôt qu'avec les Kmeans. De plus, à l'aide de la fonction cluster_similarity du package clusteval, les indice de Jaccard (égal à 1 ici) et de Rand (1 également) nous montre qu'un kmeans à 4 clusters nous donne la même partition qu'une CAH à 4 clusters. Le choix se fait donc entre une CAH à 3 ou 4 clusters. Pour faire ce choix il faut comparer les inerties des classifications. 
+Les coefficients de silhouette sont meilleurs avec la méthode de la CAH plutôt qu'avec les Kmeans. De plus, à l'aide de la fonction cluster_similarity du package clusteval, les indices de Jaccard (égal à 1 ici) et de Rand (1 également) nous montrent qu'un kmeans à 4 clusters nous donne la même partition qu'une CAH à 4 clusters. Le choix se fait donc entre une CAH à 3 ou 4 clusters. Pour faire ce choix, il faut comparer les inerties des classifications. 
 
 ### Comparaison des inerties
 
-Pour avoir un bon partitionnement il nous faut minimiser son inertie intraclasse et maximiser son inertie interclassse. C'est pourquoi, nous comparons maintenant les inerties intra et interclasse des partitionnement par CAH à 3 clusters et par CAH à 4 clusters.
+Pour avoir un bon partitionnement, il nous faut minimiser son inertie intraclasse et maximiser son inertie interclassse. C'est pourquoi nous comparons maintenant les inerties intra et interclasse des partitionnement par CAH à 3 clusters et par CAH à 4 clusters.
 
 ```{r, include = FALSE}
 
@@ -325,7 +325,7 @@ kable(tab, caption="(ref:tab5)") %>%
 
 (ref:tab5) Inertie intra et interclasse par la méthode de CAH à 3 et 4 clusters.
 
-La CAH à 4 clusters minimise le mieux l'inertie intraclasse et maximise le mieux l'inertie interclasse, en comparaison avec la CAH à 3 clusters et ce phénomène a été vérifié en comparant avec les résultats des Kmeans. Ainsi la méthode sélectionnée est la méthode des CAH à l'aide du critère de ward avec 4 clusters. 
+La CAH à 4 clusters minimise le mieux l'inertie intraclasse et maximise le mieux l'inertie interclasse, en comparaison avec la CAH à 3 clusters, et ce phénomène a été vérifié en comparant avec les résultats des Kmeans. Ainsi, la méthode sélectionnée est la méthode des CAH à l'aide du critère de ward avec 4 clusters. 
 
 (ref:clust) Clustering par la méthode de CAH avec la distance euclidienne et le critère de ward.
 
@@ -337,20 +337,20 @@ factoextra::fviz_cluster(list(data=df_CAH, cluster=clu_4),geom="point", data = d
 
 ## Les clusters - Interprétation
 
-  Nous allons donc maintenant étudier nos 4 clusters obtenus à l'aide de la méthode de CAH, afin de voir comment ils se distinguent les uns des autres, et voir quel style de jeu peut correspondre à chacun d’entre eux. Il serait intéressant de voir si jamais certains groupes sont « complémentaires » avec d’autres (au niveau des valeurs prises par les indicateurs statistiques), ainsi que d’observer la répartition des plus grands joueurs de tennis parmi ces groupes.
+  Nous allons maintenant étudier nos 4 clusters obtenus à l'aide de la méthode de CAH, afin de voir comment ils se distinguent les uns des autres, et voir quel style de jeu peut correspondre à chacun d’entre eux. Il serait intéressant de voir si jamais certains groupes sont « complémentaires » avec d’autres (au niveau des valeurs prises par les indicateurs statistiques), ainsi que d’observer la répartition des plus grands joueurs de tennis parmi ces groupes.
 
 
-  Le premier cluster se démarque des autres sur plusieurs points. Tout d'abord, le groupe se caractérise par 3/4 des joueurs avec une taille en dessous de la moyenne (1m85) et un nombre d'ace réalisé inférieur à la moyenne pour plus des 3/4 des joueurs (Annexe 1). De plus, les 24 joueurs de ce premier cluster réalise moins de service que les autres clusters, mais ont un pourcentage de services réussis du premier coup équivalent à celui des autres clusters (environ 60%). Cependant leur performance au niveau des points marqués lors du premier échange est beaucoup plus faible que pour les autres clusters (Annexe 2). De même, ils ont un plus faible taux de break points sauvés et rencontrés que pour les autres clusters. En effet, ils ne sauvent en moyenne que 51% des break points rencontrés tandis que la moyenne est au minimum de 60% dans les autres clusters (Annexe 3). Enfin, ce cluster est composé de joueurs jouant des matchs beaucoup plus courts en moyenne que pour les joueurs des autres clusters (Annexe 4). Cela pourrait s'expliquer par le fait de ne pas jouer de grand chelems. 
+  Le premier cluster se démarque des autres sur plusieurs points. Tout d'abord, le groupe se caractérise par 3/4 des joueurs avec une taille en dessous de la moyenne (1m85) et un nombre d'aces réalisés inférieur à la moyenne pour plus des 3/4 des joueurs (Annexe 1). De plus, les 24 joueurs de ce premier cluster réalisent moins de services que les autres clusters, mais ont un pourcentage de services réussis du premier coup équivalent à celui des autres clusters (environ 60%). Cependant, leur performance au niveau des points marqués lors du premier échange est beaucoup plus faible que pour les autres clusters (Annexe 2). De même, ils ont un plus faible taux de break points sauvés et rencontrés que pour les autres clusters. En effet, ils ne sauvent en moyenne que 51% des break points rencontrés tandis que la moyenne est au minimum de 60% dans les autres clusters (Annexe 3). Enfin, ce cluster est composé de joueurs jouant des matchs beaucoup plus courts en moyenne que pour les joueurs des autres clusters (Annexe 4). Cela pourrait s'expliquer par le fait de ne pas jouer de Grand Chelems. 
 
-Ainsi ce groupe serait composé des joueurs plutôt de petite taille, n'ayant pas un service puissant et/ou une attaque puissante. De plus, ils joueraient des matchs plus courts en moyenne, ce qui pourrait provennir du fait qu'ils ne jouent pas ou peu de grands chelems. Tout ceci pourrait avoir un lien avec le fait que ce cluster est caractérisé par des joueurs plutôt jeunes. En effet, 50% des joueurs ont moins de 26 ans et 75% moins de 28 ans, alors que l'age moyen de l'ensemble des joueurs ATP de 2012 est de 27 ans. Les joueurs de ce cluster sont donc en général plus jeunes que la moyenne et auraient donc moins d'expériences.
-
-
+Au final, ce groupe serait composé des joueurs plutôt de petite taille par rapport aux autres, n'ayant pas un service ou une attaque performants. De plus, ils joueraient des matchs plus courts en moyenne, ce qui pourrait provenir du fait qu'ils ne jouent pas ou peu de Grands Chelems. Tout ceci pourrait avoir un lien avec le fait que ce cluster est caractérisé par des joueurs plutôt jeunes. En effet, 50% des joueurs ont moins de 26 ans et 75% moins de 28 ans, alors que l'age moyen de l'ensemble des joueurs ATP de 2012 est de 27 ans. Les joueurs de ce cluster sont donc en général plus jeunes que la moyenne et auraient donc moins d'expérience.
 
 
-  Le deuxième cluster est composé de 14 joueurs. La taille moyenne des joueurs de ce cluster varie entre 1m73 et 1m90 avec une moyenne de 1m84. Ces joueurs sont rélativement grands par rapport aux groupes 1 et 4 (Annexe 1).
-De plus, les joueurs réussissent en moyenne 61% de leurs services du premier coup, ce qui est équivalent aux autres clusters. Cependant, ce groupe se positionne à la tête des clusters en terme de gain du premier point dès le premier échange, les joueurs de ce cluster s'illustrent donc mieux avec une moyenne environ de 85 par match ce qui est considérablement supérieur aux moyennes des autres clusters. De même, ils réalisent 11% de ace parmis leurs services réussis, ce qui est le deuxième meilleur taux parmis nos clusters. Enfin, dans la catégorie des points de break sauvés ce cluster fait encore la différence avec 63% de break sauvés en moyenne par match ce qui est supérieur aux moyennes des autres clusters.
 
-En définitive, les joueurs de ce cluster ont une taille moyenne et ont l'avantage au niveau des points de break sauvés. De plus, ils ont la capacité de gagner rapidement des points dès le premier échange, ce qui justifie leur reussite. Ils réalisent donc d'énormes performances au niveau du nombre de points gagnés dès le premier échange. On a donc des joueurs qui sont très bons en service et gagnent d'importantes balles de matchs. 
+
+  Le deuxième cluster est composé de 14 joueurs. La taille moyenne des joueurs de ce cluster varie entre 1m73 et 1m90, avec une moyenne de 1m84. Ces joueurs sont relativement grands par rapport aux groupes 1 et 4 (Annexe 1).
+De plus, les joueurs réussissent en moyenne 61% de leurs premiers services, ce qui est équivalent aux autres clusters. Cependant, ce groupe se positionne à la tête des clusters en terme de gain du point après le premier échange. Les joueurs de ce cluster s'illustrent donc avec une moyenne d'environ 85 par match, ce qui est clairement supérieur aux moyennes des autres clusters. De même, ils réalisent 11% d'aces parmi leurs services réussis, ce qui est le deuxième meilleur taux parmis nos clusters. Enfin, dans la catégorie des points de break sauvés, ce cluster fait encore la différence avec 63% de breaks sauvés en moyenne par match, ce qui est supérieur aux moyennes des autres clusters.
+
+En définitive, les joueurs de ce cluster ont une taille moyenne et ont l'avantage au niveau des points de break sauvés. De plus, ils ont la capacité de gagner rapidement des points dès le premier échange, ce qui justifie leur reussite. Ils réalisent donc d'énormes performances au niveau du nombre de points gagnés dès le premier échange. On a donc des joueurs qui sont très bons en service et dominateurs dans l'échange. 
 
 ### Cluster 3
 
@@ -363,11 +363,10 @@ df_clean %>% filter(classe_hc == 4) -> Base4
 Base4 <- Base4[,-c(9,10)]
 ```
 
-Le quatrième cluster contient `r round(nrow(Base4)/nrow(df_clean)*100,2)`% observations. Les joueurs les plus connus, dans ce cluster sont notamment Nadal et Wavrinka. Les joueurs qui composent ce groupe, ont en moyenne 27 ans. Pour la plus part ils sont donc expérimenté dans ce sport. Les joueurs font en moyen `r round(mean(Base4$height),2)` cm. En moyenne, les joueurs de ce groupe sont plus petit que les joueurs des autres clusters.
+Le quatrième cluster contient `r round(nrow(Base4)/nrow(df_clean)*100,2)`% observations. Les joueurs les plus connus dans ce cluster sont notamment Rafael Nadal et Stanislas Wawrinka. Les joueurs qui composent ce groupe, ont en moyenne 27 ans. Pour la plupart, ce sont des joueurs expérimentés du circuit ATP. Les joueurs font en moyenne `r round(mean(Base4$height),2)` cm. Les joueurs de ce groupe sont donc généralement plus petits que les joueurs des autres clusters.
 
-De plus, tous les joueurs de ce groupe sont généralement bons en service. En effet, ils réussisent en genéral plus de 61% de leurs services du premier coup, c'est le meilleur taux de nos clusters (Annexe 3). Par ailleurs, ces joueurs sont très forts sur les balles de break car lorsqu'ils ont à faire face a une balle de break, 60% du temps ils arrivent à la sauver. Le graphique (Annexe 5) permet de montrer la corrélation entre le nombre de breaks auquel les joueurs font faces et le nombre de breaks qu'ils ont sauvés ainsi on aperçoit clairement que lorsque le nombre de balles de break auquel ils font face augmente, il est plus probable que ces derniers arrive à les sauver. Enfin, ce groupe joue en moyenne 3h41, ceci s'explique par la présence de grands joueurs tels que:
-Nadal, Monfils, Lewitt ou encore Wavrinka. Ces joueurs participent au grands chelems qui se jouent sur 3 sets et non 2. Ainsi cela explique qu'ils jouent plus que la moyenne.
-La présene d'Hernych et  Denis Gremelmayr sont a douter. En effet, Ces 2 joueurs ne correspondent pas aux critères cités plus haut (Annexe 6). Ils doivent probablement jouer avec un autre style de jeu.
+De plus, tous les joueurs de ce groupe sont généralement bons au service. En effet, ils réussissent en général plus de 61% de leurs premiers services, c'est le meilleur taux de nos clusters (Annexe 3). Par ailleurs, ces joueurs sont très forts sur les balles de break, car lorsqu'ils sont dans une telle situation, ils arrivent à la sauver 60% du temps. Le graphique (Annexe 5) permet de montrer la corrélation entre le nombre de breaks auquel les joueurs font face et le nombre de breaks qu'ils ont sauvés; on aperçoit ainsi clairement que lorsqu'ils subissent des balles de break, il est plus probable que ces derniers arrivent à les sauver. Enfin, ce groupe joue en moyenne 3h41, étant donné que certains de ces joueurs participent aux Grands Chelems, qui se jouent en 3 sets gagnants et non 2. Cela explique en partie qu'ils jouent plus que la moyenne. Parmi ces joueurs, on peut noter la présence de grands noms tels que Rafael Nadal, Gaël Monfils, Lleyton Hewitt ou encore Stan Wawrinka. 
+La présence de Jan Hernych et Denis Gremelmayr suscite toutefois quelques questions. En effet, ces 2 joueurs ne correspondent pas aux critères cités plus haut (Annexe 6). Ils doivent probablement jouer avec un style de jeu légèrement différent, ce que nous verrons en annexes.
 
 # Conclusion
 
@@ -396,7 +395,7 @@ gridExtra::grid.arrange(g_age, g_height, ncol = 2, nrow = 1)
 
 ```
 
-Le taux de ace par clusters semble très différent. En effet, les joueurs du cluster 1 ont un taux de ace plus faible que la moyenne (score de 11) pour la quasi totalité des joueurs. Les joueurs du cluster 4 sont quand à eux 75% à avoir un taux plus faible que la moyenne. Concernant le cluster 2 les résultats s'améliorent avec plus de 25% des joueurs ayant un taux de ace au dessus de la moyenne. Enfin le cluster 3 se démarque par la quasi-totalité de ses joueurs ayant un taux de ace au dessus de la moyenne. En prenant le pourcentage de ace par rapport au nombre de services réussis, ce phénomène se confirme. En effet, le cluster 3 se démarque avec en moyenne 18% de ace parmis leurs services réussis. Les clusters 1, 4 et 2 se retrouvent avec respectivement 8,8% , 9% et presque 11%. On retrouve bien les clusters 1 et 4 avec le moins de aces réalisés et le cluster 2 avec des meilleurs performances mais encore loin de celles du cluster 3.
+Le taux d'aces par clusters semble très différent. En effet, les joueurs du cluster 1 ont un taux d'aces plus faible que la moyenne (score de 11) pour la quasi-totalité des joueurs. Les joueurs du cluster 4 sont quand à eux 75% à avoir un taux plus faible que la moyenne. Concernant le cluster 2, les résultats s'améliorent avec plus de 25% des joueurs ayant un taux d'aces au dessus de la moyenne. Enfin le cluster 3 se démarque par la quasi-totalité de ses joueurs ayant un taux d'aces au dessus de la moyenne. En prenant le pourcentage d'aces par rapport au nombre de services réussis, ce phénomène se confirme. En effet, le cluster 3 se démarque avec en moyenne 18% d'aces parmi leurs services réussis. Les clusters 1, 4 et 2 se retrouvent avec respectivement 8,8% , 9% et presque 11%. On retrouve bien les clusters 1 et 4 avec le moins d'aces réalisés et le cluster 2 avec des meilleurs performances, mais encore loin de celles du cluster 3.
 
 
 ```{r tab6, echo = FALSE, eval = TRUE}
@@ -409,11 +408,11 @@ kable(tab, caption="(ref:tab6)") %>%
 
 ```
 
-(ref:tab6) Pourcentage moyen de ace par clusters.
+(ref:tab6) Pourcentage moyen d'aces par clusters.
 
-Il y a un phénomène similaire concernant la taille des joueurs au sein des clusters. En effet, le cluster 1 et 4 ayant les moins bon taux de ace ont également les joueurs les plus petits, 75% de leurs joueurs sont plus petits que la moyenne des joueurs ATP de 2012 qui est de 1m85. Les joueurs du cluster 2 ont une taille plutôt bien répartie autour de la moyenne. Enfin, le cluster 3 se démarque par des joueurs de grandes tailles, la quasi totalité des joueurs ont une taille supérieur à la moyenne de 1m85.
+Il y a un phénomène similaire concernant la taille des joueurs au sein des clusters. En effet, le cluster 1 et 4 ayant les moins bons taux d'aces ont également les joueurs les plus petits : 75% de leurs joueurs sont plus petits que la moyenne des joueurs ATP de 2012, qui est de 1m85. Les joueurs du cluster 2 ont une taille plutôt bien répartie autour de la moyenne. Enfin, le cluster 3 se démarque par des joueurs de grande taille, la quasi-totalité des joueurs ont une taille supérieur à la moyenne de 1m85.
 
-On remarque donc une forte corrélation entre le fait d'être de grande taille et d'avoir une meilleure performance dans la réalisation de ace.
+On remarque donc une forte corrélation entre le fait d'être de grande taille et d'avoir une meilleure performance dans la réalisation d'aces.
 
 ## Annexe 2 : Rapport brek points sauvés/rencontrés pour chaque cluster
 
@@ -429,7 +428,7 @@ kable(tab, caption="(ref:tab7)") %>%
 
 (ref:tab7) Pourcentage moyen de points de break sauvés par clusters.
 
-Lorsque l'on regarde le pourcentage moyen de break points sauvés on remarque que les joueurs du cluster 1 ne sauvent que 51% des breaks, tandis que pour les autres clusters ce pourcentage est au minimum de 60%. En particulier les les joueurs du clusters 2 et 3 ont des pourcentages de réussite d'environ 63%.
+Lorsque l'on regarde le pourcentage moyen de break points sauvés, on remarque que les joueurs du cluster 1 ne sauvent que 51% des breaks, tandis que pour les autres clusters, ce pourcentage est au minimum de 60%. En particulier, les les joueurs des clusters 2 et 3 ont des pourcentages de réussite d'environ 63%.
 
 ## Annexe 3 : Comparaison des services réussis pour chaque cluster
 
@@ -444,7 +443,7 @@ df_clean %>%
 
 ```
 
-Le taux de services réussis du premier coup semble hétérogènes selon les clusters. En effet, les joueurs du cluster 2 semblent se détacher avec de meilleures performance. A l'opposé les joueurs du cluster 1 semblent avoir de moins bonnes performances, plus de difficultés à réussir leur service du premier coup. Cependant, lorsque l'on regarde le taux de services réussis en fonction du nombre de services faits, on observe que dans tous les clusters le pourcentage moyen de services réussis du premier coup est d'environ 60%. Le taux de services réussis du premier coup n'est donc pas un critère déterminant pour différencier les différents clusters.
+Les taux de premiers services réussis semblent hétérogènes selon les clusters. En effet, les joueurs du cluster 2 semblent se détacher avec de meilleures performances. A l'opposé, les joueurs du cluster 1 semblent avoir plus de difficultés à réussir leur service du premier coup. Cependant, lorsque l'on regarde le taux de services réussis en fonction du nombre de services faits, on observe que dans tous les clusters, le pourcentage moyen de premiers services réussis est d'environ 60%. Le taux de premiers services réussis n'est donc pas un critère déterminant pour différencier les différents clusters.
 
 
 ```{r tab8, echo = FALSE, eval = TRUE}
@@ -457,7 +456,7 @@ kable(tab, caption="(ref:tab8)") %>%
 
 ```
 
-(ref:tab8) Pourcentage de services réussis du premier coup par clusters.
+(ref:tab8) Pourcentage de premiers services réussis par clusters.
 
 
 ## Annexe 4 : Comparaison de la durée moyenne des matchs dans les différents clusters.
@@ -473,13 +472,13 @@ df_clean %>%
 
 ```
 
-La durée moyenne des matchs varient en fonction des clusters. En effet, le cluster 1 a une durée des matchs nettement inférieure à la durée moyenne de 1h45. Tandis que les joueurs des clusters 3 et 4 ont joués des matchs avec une durée aux alentours de la durée moyenne. Enfin, les joueurs du cluster 2 ont une tendance à jouer des matchs nettement plus longs que la moyenne. 
-Ce phénomène pourrait s'expliquer par le nombre de matchs joués en grands chelems par les joueurs des différents clusters.
+La durée moyenne des matchs varie en fonction des clusters. En effet, le cluster 1 a une durée des matchs nettement inférieure à la durée moyenne de 1h45, tandis que les joueurs des clusters 3 et 4 ont joué des matchs avec une durée aux alentours de la durée moyenne. Enfin, les joueurs du cluster 2 ont une tendance à jouer des matchs nettement plus longs que la moyenne. 
+Ce phénomène pourrait s'expliquer par le nombre de matchs joués en Grands Chelems par les joueurs des différents clusters.
 
 ## Annexe 5 : Corrélation entre le nombre de breaks sauvés et le nombre de breaks affrontés.
 
 
-(ref:BP) Corrélation entre les balles de break sauvées et rencontrées.
+(ref:BP) Corrélation entre les balles de break sauvées et subies
 
 ```{r BP, fig.cap="(ref:BP)", echo = FALSE, eval = TRUE}
 
@@ -500,4 +499,4 @@ acp <- FactoMineR::PCA(Base4,scale.unit = T,graph=FALSE)
 fviz_pca(acp)
 
 ```
-L'ACP permet de confirmer que les deux joueurs cités plus haut ne font pas partie du bon groupe. En effet, ces derniers peuvent être considerés comme des individus suplémentaires. Par ailleurs, la contribution de chacun s'élève à 0.0194 et 0.0549, ceux qui est très faible.
+L'ACP permet de confirmer que les deux joueurs cités plus haut ne font pas vraiment partie du bon groupe. En effet, ces derniers peuvent être considerés comme des individus "excentriques". Par ailleurs, la contribution de chacun s'élève à 0.0194 et 0.0549, ceux qui est très faible.
