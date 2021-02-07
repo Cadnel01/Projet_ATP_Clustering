@@ -167,14 +167,15 @@ Notre objectif est de déterminer différents profils de joueurs selon leur type
 
   Pour réaliser ce clustering nous avons comparé les résultats des méthodes Kmeans et de classification ascendante hiérarchique (CAH). Dans un premier temps, il faut trouver le nombre de clusters optimal. Pour la méthode des kmeans nous avons utilisé la fonction nbclust du package NbClust, nous donnant le nombre optimal de clusters pour la méthode des kmeans avec comme distance choisie la distance euclidienne.
 
-```{r, include = FALSE}
+```{r, include = FALSE,echo= FALSE}
 
 set.seed(123)
 df_kmeans <- as.data.frame(scale(df_clean, center=T, scale=T))
 nb <- NbClust(df_kmeans, distance = "euclidean", min.nc = 2, max.nc = 10, method = "kmeans")
+```
+```{r, include = FALSE,echo= FALSE}
 #fviz_nbclust(nb) 
 #Trouver comment prendre que le dernier graph
-
 ```
 
 L'ensemble des critères de recherche du nombre optimal de clusters pour la CAH propose un nombre optimal de clusters de 3. Cependant, pour être sûr de trouver le meilleur partitionnement, nous allons comparer la CAH à 3 clusters avec la CAH à 4 clusters.
