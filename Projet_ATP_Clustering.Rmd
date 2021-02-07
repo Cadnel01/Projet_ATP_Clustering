@@ -64,7 +64,7 @@ opts_chunk$set(comment = '', echo = FALSE,  tidy = TRUE,
 ```
 
 ```{r, include = FALSE}
-setwd('C:/Users/Leon/Documents/M2/SEP0942_Regnault')
+
 players <- read_csv("tennis_atp/atp_players.csv", col_names = FALSE)
 names(players) <- c("id", "firstname", "lastname", "hand", "birthday", "nat")
 
